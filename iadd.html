@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IRR — DAG · Successors</title>
+
+  <!-- Bootstrap 5 + DataTables (Bootstrap 5 theme) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.css" rel="stylesheet">
+
+  <!-- Icons (optional, you used FontAwesome originally) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+  <!-- Favicon + App styles -->
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/KeyBank_icon.svg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}"/>
+
+  <style>
+    /* Tree view (kept from your original) */
+    .tree { --spacing: 1.5rem; --radius: 10px; }
+    .tree li { display:block; position:relative; padding-left: calc(3 * var(--spacing) - var(--radius) - 2px);}
+    .tree ul { margin-left: calc(var(--radius) - var(--spacing)); padding-left:0;}
+    .tree ul li { border-left: 2px solid #ddd; margin-top: 10px;}
+    .tree ul li:last-child { border-color: transparent;}
+    .tree ul li::before { content:''; position:absolute; top: calc(var(--spacing)/-2); left:-2px; width:calc(var(--spacing)+2px); height:calc(var(--spacing)+1px); border:solid #ddd; border-width:0 0 2px 2px; }
+    .tree summary { display:block; cursor:pointer;}
+    .tree summary::marker, .tree summary::-webkit-details-marker { display:none;}
+    .tree summary:focus { outline:none;}
+    .tree summary:focus-visible { outline:1px dotted #000;}
+    .tree li::after, .tree summary::before { content:''; position:absolute; top: calc(var(--spacing)/2 - var(--radius)); left: calc(var(--spacing) - var(--radius) - 1px); width: calc(2*var(--radius)); height: calc(2*var(--radius)); border-radius:50%; background:#ddd;}
+    .tree summary::before { z-index:1; background:#696 url("{{url_for('static', filename='image/expand-collapse.svg')}}") 0 0;}
+    .tree details[open] > summary::before { background-position: calc(-2*var(--radius)) 0; }
+
+    /* Small tweaks specific to this page */
+    .page-subtitle { color: var(--muted, #6b7280); }
+    .description-cell { max-width: 680px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badge-pill { border-radius: 999px; }
+  </style>
+</head>
+<body>
+  <!-- Top bar (same look/feel as incidents) -->
+  <nav class="navbar navbar-expand-lg border-bottom app-navbar">
+    <div class="container-fluid px-3">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('home') }}">
+        <span class="brand-dot"></span>
+        <span class="fw-semibold">IRR</span>
+        <span class="opacity-75">—</span>
+        <span class="fw-bold fst-italic">DAG</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-center gap-3">
+          <li class="nav-item">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" class="image" alt="Logo" height="24">
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page header + toolbar -->
+  <header class="container-xxl py-4">
+    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+      <div>
+        <h1 class="h4 mb-1">Successors of <span class="fw-semibold">{{ short_job_name }}</span></h1>
+        <p class="page-subtitle mb-0">SLA successors and downstream dependency tree.</p>
+      </div>
+
+      <div class="toolbar card border-0 shadow-sm p-2">
+        <div class="row g-2 align-items-center">
+          <div class="col-12 col-md">
+            <div class="input-group">
+              <span class="input-group-text bg-transparent border-0 ps-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.85-3.85zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                </svg>
+              </span>
+              <input id="globalSearch" type="search" class="form-control border-0" placeholder="Search successors (AppID, job, workstation…)" />
+            </div>
+          </div>
+
+          <div class="col-6 col-md-auto">
+            <button class="btn btn-primary" id="successors_email_sendbtn">Send Email</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hidden email fields (kept for your POST) -->
+  <input type="hidden" id="successors_emailsubject">
+  <input type="hidden" id="successors_emailsubject_test">
+  <input type="hidden" id="successors_emailmessage">
+  <div id="responseMsg" class="container-xxl"></div>
+
+  <!-- SLA Successors table -->
+  <main class="container-xxl pb-5">
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table id="successorsTable" class="table table-hover align-middle mb-0">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th style="width: 140px;">SuccAppID</th>
+                <th>Successor Job</th>
+                <th style="width: 140px;">Workstation</th>
+                <th style="width: 160px;">NewStart</th>
+                <th style="width: 160px;">SLA Timing</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% set sla_jobs = [] %}
+              {% for level, records in grouped_data.items() %}
+                {% for record in records %}
+                  {% if record.Workstation == 'SLAI' or record.Workstation == 'SLAE' %}
+                    {% set _ = sla_jobs.append(record) %}
+                  {% endif %}
+                {% endfor %}
+              {% endfor %}
+
+              {% if sla_jobs %}
+                {% for record in sla_jobs %}
+                  <tr>
+                    <td><span class="badge text-bg-secondary badge-pill">{{ record.SuccAppID }}</span></td>
+                    <td class="description-cell">{{ record.SuccJobName }}</td>
+                    <td>{{ record.Workstation }}</td>
+                    <td>{{ record.SLAdeadline }}</td>
+                    <td><!-- reserved for timing value if added later --></td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td></td>
+                  <td><span style="color:#b30000; font-weight:600;" id="sendEmail">No Successor Jobs</span></td>
+                  <td></td><td></td><td></td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dependency tree (unchanged logic, styled above) -->
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <h5 class="mb-3">Dependency Tree</h5>
+
+        {% if grouped_data %}
+          <ul class="tree">
+            <li>
+              <details open>
+                <summary>{{ short_job_name }}</summary>
+                <ul>
+                  {% for level, records in grouped_data.items() %}
+                    <li>
+                      <details>
+                        <summary>Level: {{ level }} ({{ records | length }} jobs)</summary>
+                        <ul>
+                          {% for record in records %}
+                            <li>
+                              Application ID: <b>{{ record.SuccAppID }}</b>, &nbsp;
+                              Job Name: <b>{{ record.SuccJobName }}</b>, &nbsp;
+                              Work Station: <b>{{ record.Workstation }}</b>
+                            </li>
+                          {% endfor %}
+                        </ul>
+                      </details>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </details>
+            </li>
+          </ul>
+        {% else %}
+          <p id="sendEmail" style="color:#b30000; font-weight:600;">No Successor Jobs</p>
+        {% endif %}
+
+        <!-- Email payload seeds (kept) -->
+        <p style="display:none;" id="downstream_emailsubject">{{ tla_email_id }}</p>
+        <p style="display:none;" id="downstream_emailsubject_test">DAG - {{ short_job_name }} Failure</p>
+        <p style="display:none;" class="downstream_emailmessage">
+          Hi All, <br/>
+          This is to notify you that the job - {{ short_job_name }} - has failed, and we have identified your jobs are successor to the failed job. <br/>
+          We are working on fixing the job failure and will keep you posted on the updates. Please reach out to us if you have any concerns. <br/>
+          Thank you! <br/>
+          IRR Team.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.js"></script>
+
+  <script>
+    // DataTable init
+    const dt = new DataTable('#successorsTable', {
+      paging: true,
+      pageLength: 10,
+      order: [[2, 'asc']], // as in your original
+      layout: { topStart: null }
+    });
+
+    // Global search from toolbar
+    document.getElementById('globalSearch').addEventListener('input', (e) => {
+      dt.search(e.target.value).draw();
+    });
+
+    // Seed hidden email fields (kept logic, fixed for robustness)
+    $(function () {
+      const subj = $('#downstream_emailsubject').text().trim();
+      const subjTest = $('#downstream_emailsubject_test').text().trim();
+      const body = $('.downstream_emailmessage').text().trim();
+
+      $('#successors_emailsubject').val(subj);
+      $('#successors_emailsubject_test').val(subjTest);
+      $('#successors_emailmessage').val(body);
+
+      toggleSendButton();
+    });
+
+    function toggleSendButton() {
+      const msg = (document.getElementById('sendEmail')?.textContent || '').trim().toLowerCase();
+      const btn = document.getElementById('successors_email_sendbtn');
+      if (!btn) return;
+      btn.style.display = (msg === 'no successor jobs') ? 'none' : 'inline-block';
+    }
+
+    async function send_Successors_email() {
+      const successors_emailsubject = document.getElementById("successors_emailsubject").value;
+      const successors_emailsubject_test = document.getElementById("successors_emailsubject_test").value;
+      const successors_emailmessage = document.getElementById("successors_emailmessage").value;
+
+      const confirmed = confirm("Are you sure? This will send an email to all downstreams.");
+      if (!confirmed) return;
+
+      try {
+        const res = await fetch("{{ url_for('send_email_to_successors') }}", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ successors_emailsubject, successors_emailsubject_test, successors_emailmessage })
+        });
+        const data = await res.json();
+        showResponse(data.message || 'Sent', true);
+      } catch (e) {
+        showResponse('Error sending email', false);
+      }
+    }
+
+    function showResponse(text, ok) {
+      const el = document.getElementById('responseMsg');
+      el.textContent = text;
+      el.className = 'container-xxl';
+      el.style.color = ok ? 'green' : 'red';
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
+    document.getElementById('successors_email_sendbtn').addEventListener('click', send_Successors_email);
+  </script>
+</body>
+</html>
