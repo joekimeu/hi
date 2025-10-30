@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "executive-family-office-fy2024",
+    "title": "Executive household with equity compensation",
+    "file": "/Users/joekimeu/Documents/Development/hthon/ai-charity-nextjs-js/fixtures/executive-family-office-fy2024.xlsx",
+    "filingStatus": "married_joint",
+    "marginalRate": 37,
+    "taxYear": 2024,
+    "records": 24,
+    "parserErrors": [],
+    "engine": "heuristic",
+    "metrics": {
+      "agiEstimate": 602800,
+      "totalIncome": 602800,
+      "totalDonations": 50200,
+      "deductionEligible": 50200,
+      "taxableIncomeEstimate": 552600,
+      "topIncomeSource": "WAGES",
+      "donationCapCash": 50200,
+      "donationCapAppreciated": 50200
+    },
+    "recommendations": [
+      "Consider bunching gifts into a single tax year or using a donor-advised fund to reach roughly 10% of estimated AGI ($60,280).",
+      "Evaluate gifting appreciated securities held over one year to avoid realizing capital gains while deducting fair market value (subject to the 30% AGI limit).",
+      "Model year-end timing versus Q1 of next year; shifting income or deductions could smooth marginal brackets."
+    ],
+    "cautions": [
+      "Confirm IRS-qualified status for each charity and retain acknowledgement letters.",
+      "Coordinate with a tax professional before executing large or complex gifts.",
+      "This insight set is heuristic only; integrate with an AI or planning tool for deeper scenario analysis."
+    ]
+  },
+  {
+    "slug": "retiree-portfolio-fy2024",
+    "title": "Early retiree with diversified portfolio",
+    "file": "/Users/joekimeu/Documents/Development/hthon/ai-charity-nextjs-js/fixtures/retiree-portfolio-fy2024.xlsx",
+    "filingStatus": "married_joint",
+    "marginalRate": 24,
+    "taxYear": 2024,
+    "records": 15,
+    "parserErrors": [],
+    "engine": "heuristic",
+    "metrics": {
+      "agiEstimate": 162200,
+      "totalIncome": 162200,
+      "totalDonations": 29100,
+      "deductionEligible": 29100,
+      "taxableIncomeEstimate": 133100,
+      "topIncomeSource": "RETIREMENT",
+      "donationCapCash": 29100,
+      "donationCapAppreciated": 29100
+    },
+    "recommendations": [
+      "Evaluate gifting appreciated securities held over one year to avoid realizing capital gains while deducting fair market value (subject to the 30% AGI limit)."
+    ],
+    "cautions": [
+      "Confirm IRS-qualified status for each charity and retain acknowledgement letters.",
+      "Coordinate with a tax professional before executing large or complex gifts.",
+      "This insight set is heuristic only; integrate with an AI or planning tool for deeper scenario analysis."
+    ]
+  },
+  {
+    "slug": "founder-liquidity-event-fy2023",
+    "title": "Founder after liquidity event",
+    "file": "/Users/joekimeu/Documents/Development/hthon/ai-charity-nextjs-js/fixtures/founder-liquidity-event-fy2023.xlsx",
+    "filingStatus": "single",
+    "marginalRate": 35,
+    "taxYear": 2023,
+    "records": 9,
+    "parserErrors": [],
+    "engine": "heuristic",
+    "metrics": {
+      "agiEstimate": 1980000,
+      "totalIncome": 1980000,
+      "totalDonations": 360000,
+      "deductionEligible": 360000,
+      "taxableIncomeEstimate": 1620000,
+      "topIncomeSource": "CAPITAL_GAINS",
+      "donationCapCash": 360000,
+      "donationCapAppreciated": 360000
+    },
+    "recommendations": [
+      "Evaluate gifting appreciated securities held over one year to avoid realizing capital gains while deducting fair market value (subject to the 30% AGI limit).",
+      "Model year-end timing versus Q1 of next year; shifting income or deductions could smooth marginal brackets."
+    ],
+    "cautions": [
+      "Confirm IRS-qualified status for each charity and retain acknowledgement letters.",
+      "Coordinate with a tax professional before executing large or complex gifts.",
+      "This insight set is heuristic only; integrate with an AI or planning tool for deeper scenario analysis."
+    ]
+  }
+]
