@@ -1,0 +1,229 @@
+/* ---- Global / theme ---- */
+:root{
+  --brand:#b30000;
+  --brand-ink:#991a1a;
+  --bg:#f7f7f9;
+  --card:#ffffff;
+  --ink:#1f2937;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+  --pill:#f3f4f6;
+  --success:#16a34a;
+  --pending:#f59e0b;
+  --wip:#0ea5e9;
+  --assigned:#6d28d9;
+  --resolved:#059669;
+
+  /* New header/footer tones */
+  --header-bg:#fafafa;
+  --footer-bg:#f5f5f7;
+}
+
+html,body{height:100%;}
+body{
+  background:linear-gradient(180deg,#fff, var(--bg) 30%);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* ----------------------------- */
+/* HEADER / NAVBAR IMPROVEMENTS */
+/* ----------------------------- */
+
+.app-navbar{
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar-brand{
+  color:var(--ink);
+}
+
+.app-header-title{
+  font-size:1.1rem;
+  color:var(--ink);
+}
+
+.app-header-subtitle{
+  font-size:1.1rem;
+  color:var(--brand-ink);
+}
+
+.brand-dot{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:var(--brand);
+  display:inline-block;
+  box-shadow:0 0 0 4px rgba(179,0,0,.15);
+}
+
+/* User area */
+.app-user{
+  font-size:.9rem;
+  display:flex;
+  gap:.35rem;
+  color:var(--ink);
+}
+
+.signed-in-label{
+  color:var(--muted);
+}
+
+.signed-in-user{
+  font-weight:600;
+  color:var(--brand-ink);
+}
+
+
+/* ----------------------------- */
+/* FOOTER                        */
+/* ----------------------------- */
+
+.app-footer{
+  background:var(--footer-bg);
+  border-top:1px solid var(--border);
+}
+
+.app-footer .footer-title{
+  font-size:1rem;
+  color:var(--ink);
+}
+
+.app-footer .footer-subtext{
+  font-size:.9rem;
+}
+
+
+/* ----------------------------- */
+/* Existing styles (unchanged)   */
+/* ----------------------------- */
+
+/* Toolbar */
+.toolbar{
+  background:var(--card);
+  border-radius:14px;
+}
+.input-group .form-control{
+  box-shadow:none;
+}
+.input-group-text{
+  color:var(--muted);
+}
+
+/* Table card */
+.card{
+  border-radius:16px;
+}
+.table{
+  margin-bottom:0;
+}
+.table > :not(caption) > * > *{
+  padding: .875rem .75rem;
+  vertical-align: middle;
+}
+.table thead th{
+  font-weight:600;
+  color:#475569;
+  border-bottom:1px solid var(--border) !important;
+}
+.table tbody tr{
+  transition: background-color .15s ease;
+}
+.table tbody tr:hover{
+  background: #fafafa;
+}
+.sticky-top{
+  position: sticky; top: 0; z-index: 10;
+}
+
+/* Link-like cell */
+.link-like{
+  color: var(--brand-ink);
+}
+.link-like:hover{
+  color: var(--brand);
+  text-decoration: underline;
+}
+
+/* Clamped description */
+.description-cell{
+  max-width: 760px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* Priority pills */
+.priority-pill{
+  background: var(--pill);
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+.priority-pill[data-priority="1"]{ border-color:#b91c1c; color:#b91c1c; }
+.priority-pill[data-priority="2"]{ border-color:#dc2626; color:#dc2626; }
+.priority-pill[data-priority="3"]{ border-color:#ea580c; color:#ea580c; }
+.priority-pill[data-priority="4"]{ border-color:#2563eb; color:#2563eb; }
+.priority-pill[data-priority="5"]{ border-color:#6b7280; color:#6b7280; }
+
+/* State chips */
+.state-pill{
+  display:inline-block;
+  padding: .35rem .6rem;
+  font-size: .85rem;
+  border-radius: 999px;
+  background: var(--pill);
+  border:1px solid var(--border);
+  font-weight:600;
+}
+.state-new{ color: var(--brand-ink); border-color: var(--brand-ink); }
+.state-assigned{ color: var(--assigned); border-color: var(--assigned); }
+.state-wip{ color: var(--wip); border-color: var(--wip); }
+.state-pending{ color: var(--pending); border-color: var(--pending); }
+.state-resolved{ color: var(--resolved); border-color: var(--resolved); }
+
+/* Buttons */
+.btn-outline-success{
+  --bs-btn-color: var(--resolved);
+  --bs-btn-border-color: var(--resolved);
+  --bs-btn-hover-bg: var(--resolved);
+  --bs-btn-hover-border-color: var(--resolved);
+}
+
+/* AI scoring UX */
+.feedback{
+  margin-top: .25rem;
+  padding: .4rem .5rem;
+  border-radius: .375rem;
+  font-size: .875rem;
+  color:#111827;
+}
+
+.score-indicator{
+  font-size: .8rem;
+  font-weight:500;
+  color:var(--muted);
+  margin-left:.5rem;
+}
+
+.score-indicator span{
+  font-weight:600;
+  color:var(--brand-ink);
+}
+
+/* Link-style button */
+.link-btn{
+  background:transparent;
+  border:none;
+  padding:0;
+  margin:0;
+  font:inherit;
+  color:inherit;
+  cursor:pointer;
+}
+
+.link-btn:focus-visible{
+  outline:2px solid var(--brand);
+  outline-offset:2px;
+}
