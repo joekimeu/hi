@@ -1,0 +1,2714 @@
+<html>
+    <head>
+        <title>IRR</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='node_modules2/bootstrap/dist/css/bootstrap.min.css') }}"
+        >
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='node_modules2/datatables.net-bs5/css/dataTables.bootstrap5.min.css') }}"
+        >
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        >
+        <link
+            rel="icon"
+            type="image/png"
+            href="{{ url_for('static', filename='image/KeyBank_icon.svg') }}"
+        >
+        <link
+            rel="stylesheet"
+            type="text/css"
+            href="{{ url_for('static', filename='styles/style.css') }}"
+        >
+    </head>
+    <body>
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <h2 style="color: white;">IRR</h2>
+                </a>
+                <a class="navbar-brand" href="#" style="color: white;">DAG</a>
+
+                <button
+                    class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav"
+                    aria-controls="navbarNav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <img
+                                src="{{ url_for('static', filename='image/logo.png') }}"
+                                class="image"
+                            >
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <br>
+
+        <div class="container">
+            <!-- Back / Home row -->
+            <div class="row">
+                <div class="col-10 col-xxl-10 col-xl-10 col-lg-10 col-md-10 col-sm-10">
+                    {% if original_resolution == "NA" %}
+                    <form action="{{ url_for('show_related_incidents') }}" method="post">
+                        <input
+                            type="hidden"
+                            name="incident_number"
+                            value="{{ original_incident }}"
+                        >
+                        <button class="link-btn" type="submit">
+                            <i
+                                class="fa fa-arrow-left fa-2x"
+                                style="color: rgb(204, 0, 0);"
+                                aria-hidden="true"
+                            ></i>
+                            <span
+                                style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;"
+                            >
+                                Back
+                            </span>
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="{{ url_for('view_resolution') }}" method="post">
+                        <input
+                            type="hidden"
+                            name="incident_number"
+                            value="{{ incident_number }}"
+                        >
+                        <input
+                            type="hidden"
+                            name="original_incident"
+                            value="{{ original_incident }}"
+                        >
+                        <input
+                            type="hidden"
+                            name="original_ShortDescription"
+                            value="{{ original_ShortDescription }}"
+                        >
+                        <button class="link-btn" type="submit">
+                            <i
+                                class="fa fa-arrow-left fa-2x"
+                                style="color: rgb(204, 0, 0);"
+                                aria-hidden="true"
+                            ></i>
+                            <span
+                                style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;"
+                            >
+                                Back
+                            </span>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                <div class="col-2 col-xxl-2 col-xl-2 col-lg-2 col-md-2 col-sm-2 text-end">
+                    <a href="{{ url_for('home') }}">
+                        <i
+                            class="fa fa-home fa-2x"
+                            style="color: rgb(204, 0, 0);"
+                            aria-hidden="true"
+                        ></i>
+                        <span
+                            style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;"
+                        >
+                            Home
+                        </span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main form content -->
+            <div class="row">
+                <div class="col-12 col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12">
+                    <label for="state"><b>State<span style="color: red;">*</span></b></label>
+                    <select id="state" class="form-control">
+                        <option value="resolved">Resolved</option>
+                        <option value="pending">Pending</option>
+                    </select>
+
+                    <!-- RESOLVED GROUP -->
+                    <div id="resolved" class="group">
+                        <label for="sub_state">
+                            <b>Sub State <span style="color: red;">*</span></b>
+                        </label>
+                        <select id="sub_tate" class="form-control">
+                            <option value="">---Select Sub State---</option>
+                            <option value="Pending User Info">Pending User Info</option>
+                            <option value="Solved (Work Around)">Solved(Work Around)</option>
+                            <option value="Pending Vendor">Pending Vendor</option>
+                            <option value="Solved (Permanently)">Solved(Permanently)</option>
+                            <option value="Access and Authentication">Access and Authentication</option>
+                            <option value="Pending_Problem">Pending Problem</option>
+                            <option value="Pending_Change">Pending Change</option>
+                            <option value="User Error/Knowledge">User Error/Knowledge</option>
+                            <option value="Not Reproducible">Not Reproducible</option>
+                            <option value="Unknown">Unknown</option>
+                            <option value="Closed/Resolved by Requested for">
+                                Closed/Resolved by Requested for
+                            </option>
+                            <option value="Email Spam">Email Spam</option>
+                            <option value="Duplicate">Duplicate</option>
+                            <option value="No Action Taken">No Action Taken</option>
+                        </select>
+
+                        <div id="Pending_Problem" class="problem_id">
+                            <label for="Pending_Problem">
+                                <b>Problem No. <span style="color: red;">*</span></b>
+                            </label>
+                            <textarea
+                                id="PendingProblem"
+                                class="form-control"
+                                rows="1"
+                            ></textarea>
+                        </div>
+
+                        <div id="Pending_Change" class="change_id">
+                            <label for="Pending_Change">
+                                <b>Change No. <span style="color: red;">*</span></b>
+                            </label>
+                            <textarea
+                                id="PendingChange"
+                                class="form-control"
+                                rows="1"
+                            ></textarea>
+                        </div>
+
+                        <div id="Duplicate" class="duplicate">
+                            <label for="Duplicate">
+                                <b>Parent Incident <span style="color: red;">*</span></b>
+                            </label>
+                            <textarea
+                                id="duplicate"
+                                class="form-control"
+                                rows="1"
+                            ></textarea>
+                        </div>
+
+                        <label for="cause_code">
+                            <b>Cause Code <span style="color: red;">*</span></b>
+                        </label>
+                        <select id="cause_code" class="form-control">
+                            <option value="">---Select Cause Code---</option>
+                        </select>
+
+                        <label for="category">
+                            <b>Category <span style="color: red;">*</span></b>
+                        </label>
+                        <select id="category" class="form-control">
+                            <option value="">---Select Category---</option>
+                        </select>
+
+                        <label for="sub_category">
+                            <b>Sub Category <span style="color: red;">*</span></b>
+                        </label>
+                        <select id="sub_category" class="form-control">
+                            <option value="">---Select Sub Category---</option>
+                        </select>
+
+                        <label for="work_notes"><b>Work Notes</b></label>
+                        <textarea
+                            id="work_notes"
+                            class="form-control"
+                            rows="3"
+                        ></textarea>
+
+                        <!-- Details w/ AI scoring -->
+                        <label for="details">
+                            <b>Detailed RCA</b>
+                            <span style="color: red;">*</span>
+                            <span class="score-indicator">
+                                Score:
+                                <span id="details-label-score">0</span>
+                            </span>
+                        </label>
+                        <textarea
+                            id="details"
+                            class="form-control"
+                            rows="3"
+                        >{{ original_resolution }}</textarea>
+                        <div id="detailsFeedback" class="feedback"></div>
+
+                        <!-- Action Taken w/ AI scoring -->
+                        <label for="action_taken">
+                            <b>Action Taken</b>
+                            <span style="color: red;">*</span>
+                            <span class="score-indicator">
+                                Score:
+                                <span id="action-label-score">0</span>
+                            </span>
+                        </label>
+                        <textarea
+                            id="action_taken"
+                            class="form-control"
+                            rows="3"
+                        ></textarea>
+                        <div id="actionFeedback" class="feedback"></div>
+
+                        <!-- AI scoring script (calculate-score endpoint) -->
+                        <script>
+                            let detailsScore = 0;
+                            let actionScore = 0;
+
+                            document.addEventListener('DOMContentLoaded', function () {
+                                const detailsTextArea =
+                                    document.getElementById('details');
+                                const actionTakenTextArea =
+                                    document.getElementById('action_taken');
+                                const detailsScoreElement =
+                                    document.getElementById('details-label-score');
+                                const actionScoreElement =
+                                    document.getElementById('action-label-score');
+                                const detailsFeedback =
+                                    document.getElementById('detailsFeedback');
+                                const actionFeedback =
+                                    document.getElementById('actionFeedback');
+
+                                // Split the summarized resolution into "details" and "Resolution Activity"
+                                function splitInitialText(text) {
+                                    const parts =
+                                        text.split(/Resolution Activity:/i);
+
+                                    if (parts.length > 1) {
+                                        detailsTextArea.value =
+                                            parts[0].trim();
+                                        actionTakenTextArea.value =
+                                            parts[1].trim();
+
+                                        calculateScore(
+                                            detailsTextArea.value,
+                                            'details'
+                                        );
+                                        calculateScore(
+                                            actionTakenTextArea.value,
+                                            'action_taken'
+                                        );
+                                    } else {
+                                        detailsTextArea.value = text.trim();
+                                        calculateScore(
+                                            text.trim(),
+                                            'details'
+                                        );
+                                    }
+                                }
+
+                                splitInitialText(detailsTextArea.value);
+
+                                detailsTextArea.addEventListener('input', (e) =>
+                                    handleInput(e, 'details')
+                                );
+                                actionTakenTextArea.addEventListener(
+                                    'input',
+                                    (e) => handleInput(e, 'action_taken')
+                                );
+
+                                function handleInput(event, field) {
+                                    calculateScore(event.target.value, field);
+                                }
+
+                                function calculateScore(text, field) {
+                                    fetch('/calculate-score', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type':
+                                                'application/json',
+                                        },
+                                        body: JSON.stringify({ text: text }),
+                                    })
+                                        .then((response) => response.json())
+                                        .then((data) => {
+                                            updateFieldScore(field, data.score);
+                                        })
+                                        .catch((error) => {
+                                            console.error(
+                                                'Error calculating score:',
+                                                error
+                                            );
+                                            const feedbackElement =
+                                                field === 'details'
+                                                    ? detailsFeedback
+                                                    : actionFeedback;
+                                            feedbackElement.textContent =
+                                                'Error calculating score. Please try again.';
+                                            feedbackElement.style.backgroundColor =
+                                                '#ffebee';
+                                        });
+                                }
+
+                                function updateFieldScore(field, score) {
+                                    const scoreElement =
+                                        field === 'details'
+                                            ? detailsScoreElement
+                                            : actionScoreElement;
+                                    const feedbackElement =
+                                        field === 'details'
+                                            ? detailsFeedback
+                                            : actionFeedback;
+
+                                    scoreElement.textContent = score;
+
+                                    if (field === 'details') {
+                                        detailsScore = score;
+                                    } else {
+                                        actionScore = score;
+                                    }
+
+                                    updateFeedback(score, feedbackElement);
+                                }
+
+                                function updateFeedback(score, element) {
+                                    if (score < 40) {
+                                        element.textContent =
+                                            'Poor details. Please add more details & keywords.';
+                                        element.style.backgroundColor =
+                                            '#ffebee';
+                                    } else if (score < 70) {
+                                        element.textContent =
+                                            'Almost there! Plese add more details & keywords.';
+                                        element.style.backgroundColor =
+                                            '#fff3e0';
+                                    } else {
+                                        element.textContent =
+                                            'Details looks good.';
+                                        element.style.backgroundColor =
+                                            '#e8f5e9';
+                                    }
+                                }
+                            });
+                        </script>
+
+                        <label for="resolution_type">
+                            <b>Resolution Type
+                                <span style="color: red;">*</span></b>
+                        </label>
+                        <select id="resolution_type" class="form-control">
+                            <option value="">---Select Resolution Type---</option>
+                            <option value="Fix Deployed">Fix Deployed</option>
+                            <option value="Workaround Implemented">
+                                Workaround Implemented
+                            </option>
+                            <option value="Configuration Change">
+                                Configuration Change
+                            </option>
+                            <option value="Performance Optimization">
+                                Performance Optimization
+                            </option>
+                            <option value="No Action Required">
+                                No Action Required
+                            </option>
+                        </select>
+
+                        <button id="submitBtn" class="btn btn-primary mt-3">
+                            Submit
+                        </button>
+                        <div
+                            id="errorMsg"
+                            class="text-danger mt-2"
+                            style="display: none;"
+                        ></div>
+
+                        <button id="resetBtn" class="btn btn-danger mt-3">
+                            Reset
+                        </button>
+
+                        <!-- Modal for RESOLVED submit -->
+                        <div class="modal fade" id="myModal">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title">
+                                            Selected Data
+                                        </h4>
+                                        <button
+                                            type="button"
+                                            class="close"
+                                            data-dismiss="modal"
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+
+                                    <form id="textForm">
+                                        <div class="modal-body">
+                                            <label>Sub State</label>
+                                            <input
+                                                type="text"
+                                                id="modalState"
+                                                class="form-control"
+                                                readonly
+                                            >
+
+                                            <div id="a1">
+                                                <label>Problem Number</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalProblem"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                            </div>
+
+                                            <div id="a2">
+                                                <label>Change Number</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalChange"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                            </div>
+
+                                            <div id="a3">
+                                                <label>Duplicate Value</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalDuplicate"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                            </div>
+
+                                            <label>Cause Code</label>
+                                            <input
+                                                type="text"
+                                                id="modalCause"
+                                                class="form-control"
+                                                readonly
+                                            >
+
+                                            <label>Closure Note</label>
+                                            <textarea
+                                                id="modalText"
+                                                class="form-control"
+                                                rows="4"
+                                                readonly
+                                            ></textarea>
+
+                                            <input
+                                                id="original_inc"
+                                                type="text"
+                                                value="{{ original_incident }}"
+                                                hidden
+                                            >
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button
+                                                id="saveBtn"
+                                                class="btn btn-success"
+                                                type="submit"
+                                            >
+                                                Submit
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-default"
+                                                data-bs-dismiss="modal"
+                                            >
+                                                Close
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <!-- Modal submit script -->
+                                    <script>
+                                        const form = document.getElementById(
+                                            'textForm'
+                                        );
+                                        form.addEventListener(
+                                            'submit',
+                                            async function (e) {
+                                                e.preventDefault();
+
+                                                const data = {
+                                                    cause_code:
+                                                        document.getElementById(
+                                                            'cause_code'
+                                                        ).value,
+                                                    sub_tate:
+                                                        document.getElementById(
+                                                            'sub_tate'
+                                                        ).value,
+                                                    original_inc:
+                                                        document.getElementById(
+                                                            'original_inc'
+                                                        ).value,
+                                                    modalText:
+                                                        document.getElementById(
+                                                            'modalText'
+                                                        ).value,
+                                                    workNotes:
+                                                        document.getElementById(
+                                                            'work_notes'
+                                                        ).value,
+                                                    Pending_problem:
+                                                        document.getElementById(
+                                                            'PendingProblem'
+                                                        ).value,
+                                                    Pending_Change:
+                                                        document.getElementById(
+                                                            'PendingChange'
+                                                        ).value,
+                                                    Duplicate:
+                                                        document.getElementById(
+                                                            'duplicate'
+                                                        ).value,
+                                                };
+
+                                                const response =
+                                                    await fetch('/update', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Content-Type':
+                                                                'application/json',
+                                                        },
+                                                        body: JSON.stringify({
+                                                            content: data,
+                                                        }),
+                                                    });
+
+                                                await response.json();
+                                                alert(
+                                                    'Incident is closed in ServiceNow'
+                                                );
+                                                window.location.href = '/';
+                                            }
+                                        );
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PENDING GROUP -->
+                    <div id="pending" class="group">
+                        <label for="sub_state1">
+                            Sub State <span style="color: red;">*</span>
+                        </label>
+                        <select id="sub_state1" class="form-control">
+                            <option value="">---Select Sub State---</option>
+                            <option value="Pending User Info">Pending User Info</option>
+                            <option value="Solved (Work Around)">Solved(Work Around)</option>
+                            <option value="Pending Vendor">Pending Vendor</option>
+                            <option value="Solved (Permanently)">Solved(Permanently)</option>
+                            <option value="Access and Authentication">Access and Authentication</option>
+                            <option value="Pending_Problem1">Pending Problem</option>
+                            <option value="Pending_Change1">Pending Change</option>
+                            <option value="User Error/Knowledge">User Error/Knowledge</option>
+                            <option value="Not Reproducible">Not Reproducible</option>
+                            <option value="Unknown">Unknown</option>
+                            <option value="Closed/Resolved by Requested for">
+                                Closed/Resolved by Requested for
+                            </option>
+                            <option value="Email Spam">Email Spam</option>
+                            <option value="Duplicate1">Duplicate</option>
+                            <option value="No Action Taken">No Action Taken</option>
+                        </select>
+
+                        <div id="Pending_Problem1" class="problem_id1">
+                            <label for="Pending_Problem1">
+                                Problem No. <span style="color: red;">*</span>
+                            </label>
+                            <textarea
+                                id="PendingProblem1"
+                                class="form-control"
+                                rows="1"
+                            ></textarea>
+
+                            <label for="cause_code1">
+                                Cause Code <span style="color: red;">*</span>
+                            </label>
+                            <select id="cause_code1" class="form-control">
+                                <option value="">---Select Cause Code---</option>
+                            </select>
+
+                            <label for="category1">
+                                Category <span style="color: red;">*</span>
+                            </label>
+                            <select id="category1" class="form-control">
+                                <option value="">---Select Category---</option>
+                            </select>
+
+                            <label for="sub_category1">
+                                Sub Category <span style="color: red;">*</span>
+                            </label>
+                            <select id="sub_category1" class="form-control">
+                                <option value="">---Select Sub Category---</option>
+                            </select>
+
+                            <label for="details1">
+                                Detailed RCA <span style="color: red;">*</span>
+                            </label>
+                            <textarea
+                                id="details1"
+                                class="form-control"
+                                rows="3"
+                            ></textarea>
+
+                            <label for="action_taken1">
+                                Action Taken <span style="color: red;">*</span>
+                            </label>
+                            <textarea
+                                id="action_taken1"
+                                class="form-control"
+                                rows="3"
+                            ></textarea>
+
+                            <p
+                                style="display: none;"
+                                id="mySentence1"
+                            >{{ original_resolution }}</p>
+
+                            <script>
+                                const sentence1 =
+                                    document.getElementById('mySentence1')
+                                        .textContent;
+                                const keyword1 = 'Resolution';
+                                const parts1 = sentence1.split(keyword1);
+
+                                document.getElementById('details1').value =
+                                    (parts1[0] || '').trim();
+                                document.getElementById('action_taken1').value =
+                                    parts1[1] || '';
+                            </script>
+
+                            <label for="resolution_type1">
+                                Resolution Type
+                                <span style="color: red;">*</span>
+                            </label>
+                            <select id="resolution_type1" class="form-control">
+                                <option value="">---Select Resolution Type---</option>
+                                <option value="Fix Deployed">Fix Deployed</option>
+                                <option value="Workaround Implemented">
+                                    Workaround Implemented
+                                </option>
+                                <option value="Configuration Change">
+                                    Configuration Change
+                                </option>
+                                <option value="Performance Optimization">
+                                    Performance Optimization
+                                </option>
+                                <option value="No Action Required">
+                                    No Action Required
+                                </option>
+                            </select>
+                        </div>
+
+                        <div id="Pending_Change1" class="change_id1">
+                            <label for="Pending_Change1">
+                                Change No. <span style="color: red;">*</span>
+                            </label>
+                            <textarea
+                                id="PendingChange1"
+                                class="form-control"
+                                rows="1"
+                            ></textarea>
+                        </div>
+
+                        <div id="Duplicate1" class="duplicate1">
+                            <label for="Duplicate">
+                                Parent Incident <span style="color: red;">*</span>
+                            </label>
+                            <textarea
+                                id="duplicate1"
+                                class="form-control"
+                                rows="1"
+                            ></textarea>
+                        </div>
+
+                        <label for="work_notes1">Work Notes</label>
+                        <textarea
+                            id="work_notes1"
+                            class="form-control"
+                            rows="3"
+                        ></textarea>
+
+                        <button id="submitBtn1" class="btn btn-primary mt-3">
+                            Submit
+                        </button>
+                        <div
+                            id="errorMsg1"
+                            class="text-danger mt-2"
+                            style="display: none;"
+                        ></div>
+
+                        <!-- Modal for PENDING submit -->
+                        <div class="modal fade" id="myModal1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title">
+                                            Selected Data
+                                        </h4>
+                                        <button
+                                            type="button"
+                                            class="close"
+                                            data-dismiss="modal"
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+
+                                    <form id="textForm1">
+                                        <div class="modal-body">
+                                            <label>Sub State</label>
+                                            <input
+                                                type="text"
+                                                id="modalState1"
+                                                class="form-control"
+                                                readonly
+                                            >
+
+                                            <label>Work Notes</label>
+                                            <input
+                                                type="text"
+                                                id="modalWork1"
+                                                class="form-control"
+                                                readonly
+                                            >
+
+                                            <input
+                                                id="original_inc"
+                                                type="text"
+                                                value="{{ original_incident }}"
+                                                hidden
+                                            >
+
+                                            <div id="b1">
+                                                <label>Problem Number</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalProblem1"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                                <label>Cause Code</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalCause1"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                                <label>Closure Note</label>
+                                                <textarea
+                                                    id="modalText1"
+                                                    class="form-control"
+                                                    rows="4"
+                                                    readonly
+                                                ></textarea>
+                                            </div>
+
+                                            <div id="b2">
+                                                <label>Change Number</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalChange1"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                            </div>
+
+                                            <div id="b3">
+                                                <label>Duplicate Value</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalDuplicate1"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                            </div>
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button
+                                                id="saveBtn1"
+                                                class="btn btn-success"
+                                                type="submit"
+                                            >
+                                                Submit
+                                            </button>
+                                            <button
+                                                id="clsBtn"
+                                                type="button"
+                                                class="btn btn-default"
+                                                data-dismiss="modal"
+                                            >
+                                                Close
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <script>
+                                        const form1 =
+                                            document.getElementById('textForm1');
+                                        form1.addEventListener(
+                                            'submit',
+                                            async function (e) {
+                                                e.preventDefault();
+
+                                                const data1 = {
+                                                    modalState1:
+                                                        document.getElementById(
+                                                            'modalState1'
+                                                        ).value,
+                                                    original_inc:
+                                                        document.getElementById(
+                                                            'original_inc'
+                                                        ).value,
+                                                    modalWork:
+                                                        document.getElementById(
+                                                            'modalWork1'
+                                                        ).value,
+                                                    modalText1:
+                                                        document.getElementById(
+                                                            'modalText1'
+                                                        ).value,
+                                                    Pending_problem1:
+                                                        document.getElementById(
+                                                            'PendingProblem1'
+                                                        ).value,
+                                                    Pending_Change1:
+                                                        document.getElementById(
+                                                            'PendingChange1'
+                                                        ).value,
+                                                    Duplicate1:
+                                                        document.getElementById(
+                                                            'duplicate1'
+                                                        ).value,
+                                                    cause_code1:
+                                                        document.getElementById(
+                                                            'cause_code1'
+                                                        ).value,
+                                                };
+
+                                                const response =
+                                                    await fetch('/update1', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Content-Type':
+                                                                'application/json',
+                                                        },
+                                                        body: JSON.stringify({
+                                                            content: data1,
+                                                        }),
+                                                    });
+
+                                                await response.json();
+                                                alert(
+                                                    'Incident is updated in ServiceNow'
+                                                );
+                                                window.location.href = '/';
+                                            }
+                                        );
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /pending -->
+                </div>
+            </div>
+        </div>
+
+        <!-- JS assets -->
+        <script src="{{ url_for('static', filename='node_modules2/jquery/dist/jquery.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='node_modules2/datatables.net/js/dataTables.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='node_modules2/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+
+        <!-- Shared jQuery behaviour -->
+        <script>
+            $(document).ready(function () {
+                // Default view
+                $('.group').hide();
+                $('#resolved').show();
+
+                $('#state').change(function () {
+                    $('.group').hide();
+                    $('#' + $(this).val()).show();
+                });
+
+                // show / hide nested problem/change/duplicate for RESOLVED
+                $('.problem_id').hide();
+                $('.change_id').hide();
+                $('.duplicate').hide();
+                $('#sub_tate').change(function () {
+                    $('.problem_id').hide();
+                    $('.change_id').hide();
+                    $('.duplicate').hide();
+                    $('#' + $(this).val()).show();
+                });
+
+                // show / hide nested problem/change/duplicate for PENDING
+                $('.problem_id1').hide();
+                $('.change_id1').hide();
+                $('.duplicate1').hide();
+                $('#sub_state1').change(function () {
+                    $('.problem_id1').hide();
+                    $('.change_id1').hide();
+                    $('.duplicate1').hide();
+                    $('#' + $(this).val()).show();
+                });
+            });
+        </script>
+
+        <!-- Cause-code / Category cascading dropdowns (resolved + pending) -->
+        <script>
+            let jsonData = {};
+
+            $.getJSON('/static/data.json', function (data) {
+                jsonData = data;
+                populateCausecode();
+            });
+
+            function populateCausecode() {
+                let causecodeDropdown = $('#cause_code');
+                $.each(jsonData, function (cause_code) {
+                    causecodeDropdown.append(
+                        `<option value="${cause_code}">${cause_code}</option>`
+                    );
+                });
+            }
+
+            $('#cause_code').change(function () {
+                let cause_code = $(this).val();
+                let categoryDropdown = $('#category').html(
+                    '<option value="">Select Category</option>'
+                );
+                let subcategoryDropdown = $('#sub_category').html(
+                    '<option value="">Select sub_category</option>'
+                );
+
+                if (cause_code) {
+                    $.each(jsonData[cause_code], function (category) {
+                        categoryDropdown.append(
+                            `<option value="${category}">${category}</option>`
+                        );
+                    });
+                }
+            });
+
+            $('#category').change(function () {
+                let category = $(this).val();
+                let cause_code = $('#cause_code').val();
+                let subcategoryDropdown = $('#sub_category').html(
+                    '<option value="">Select sub_category</option>'
+                );
+
+                if (category && cause_code) {
+                    $.each(
+                        jsonData[cause_code][category],
+                        function (index, sub_category) {
+                            subcategoryDropdown.append(
+                                `<option value="${sub_category}">${sub_category}</option>`
+                            );
+                        }
+                    );
+                }
+            });
+
+            // Pending group json
+            let jsonData1 = {};
+
+            $.getJSON('/static/data.json', function (data1) {
+                jsonData1 = data1;
+                populateCausecode1();
+            });
+
+            function populateCausecode1() {
+                let causecodeDropdown1 = $('#cause_code1');
+                $.each(jsonData1, function (cause_code1) {
+                    causecodeDropdown1.append(
+                        `<option value="${cause_code1}">${cause_code1}</option>`
+                    );
+                });
+            }
+
+            $('#cause_code1').change(function () {
+                let cause_code1 = $(this).val();
+                let categoryDropdown1 = $('#category1').html(
+                    '<option value="">Select Category</option>'
+                );
+                let subcategoryDropdown1 = $('#sub_category1').html(
+                    '<option value="">Select sub_category</option>'
+                );
+
+                if (cause_code1) {
+                    $.each(jsonData1[cause_code1], function (category1) {
+                        categoryDropdown1.append(
+                            `<option value="${category1}">${category1}</option>`
+                        );
+                    });
+                }
+            });
+
+            $('#category1').change(function () {
+                let category1 = $(this).val();
+                let cause_code1 = $('#cause_code1').val();
+                let subcategoryDropdown1 = $('#sub_category1').html(
+                    '<option value="">Select sub_category</option>'
+                );
+
+                if (category1 && cause_code1) {
+                    $.each(
+                        jsonData[cause_code1][category1],
+                        function (index1, sub_category1) {
+                            subcategoryDropdown1.append(
+                                `<option value="${sub_category1}">${sub_category1}</option>`
+                            );
+                        }
+                    );
+                }
+            });
+
+            // RESOLVED submit validation
+            $('#submitBtn').click(function () {
+                let SubState = $('#sub_tate').val();
+                let cause_code = $('#cause_code').val();
+                let category = $('#category').val();
+                let sub_category = $('#sub_category').val();
+                let details = $('#details').val();
+                let action_taken = $('#action_taken').val();
+                let resolution_type = $('#resolution_type').val();
+                let PendingProblem = $('#PendingProblem').val();
+                let PendingChange = $('#PendingChange').val();
+                let Duplicate = $('#duplicate').val();
+                let isvalid = true;
+
+                $('.form-control').removeClass('is-invalid');
+                $('#errorMsg').hide().text('');
+
+                if (!SubState) {
+                    $('#sub_tate').addClass('is-invalid');
+                    isvalid = false;
+                }
+                if (!cause_code) {
+                    $('#cause_code').addClass('is-invalid');
+                    isvalid = false;
+                }
+                if (!category) {
+                    $('#category').addClass('is-invalid');
+                    isvalid = false;
+                }
+                if (!sub_category) {
+                    $('#sub_category').addClass('is-invalid');
+                    isvalid = false;
+                }
+                if (!details || detailsScore < 75) {
+                    $('#details').addClass('is-invalid');
+                    isvalid = false;
+                }
+                if (!action_taken || actionScore < 75) {
+                    $('#action_taken').addClass('is-invalid');
+                    isvalid = false;
+                }
+                if (!resolution_type) {
+                    $('#resolution_type').addClass('is-invalid');
+                    isvalid = false;
+                }
+
+                if (SubState === 'Pending_Problem' && !PendingProblem) {
+                    $('#PendingProblem').addClass('is-invalid');
+                    isvalid = false;
+                }
+
+                if (SubState === 'Pending_Change' && !PendingChange) {
+                    $('#PendingChange').addClass('is-invalid');
+                    isvalid = false;
+                }
+
+                if (SubState === 'Duplicate' && !Duplicate) {
+                    $('#duplicate').addClass('is-invalid');
+                    isvalid = false;
+                }
+
+                if (!isvalid) {
+                    $('#errorMsg')
+                        .text('Please fill all the fields before submitting')
+                        .show();
+                    return;
+                }
+
+                const substate = $('#sub_tate').val();
+                const problem_id = $('#PendingProblem').val();
+                const change_id = $('#PendingChange').val();
+                const duplicate_id = $('#duplicate').val();
+                const causeData = $('#cause_code').val();
+                const selectedData =
+                    `Category : ${$('#category').val()}\n` +
+                    `Sub Category : ${$('#sub_category').val()}\n` +
+                    `RCA : ${$('#details').val()}\n` +
+                    `Action Taken : ${$('#action_taken').val()}\n` +
+                    `Resolution Type:${$('#resolution_type').val()}`;
+
+                if (substate !== 'Pending_Problem') {
+                    $('#a1').hide();
+                }
+                if (substate !== 'Pending_Change') {
+                    $('#a2').hide();
+                }
+                if (substate !== 'Duplicate') {
+                    $('#a3').hide();
+                }
+
+                $('#modalState').val(substate);
+                $('#modalProblem').val(problem_id);
+                $('#modalChange').val(change_id);
+                $('#modalDuplicate').val(duplicate_id);
+                $('#modalCause').val(causeData);
+                $('#modalText').val(selectedData);
+
+                $('#myModal').modal('show');
+            });
+
+            // Basic change logger hook
+            document
+                .querySelector('.form-control')
+                .addEventListener('change', function (event) {
+                    console.log(
+                        'Input changed:',
+                        event.target.name,
+                        'New value:',
+                        event.target.value
+                    );
+                    yourFunctionToCall();
+                });
+
+            function yourFunctionToCall() {
+                console.log('Form change detected!');
+            }
+
+            $('#sub_tate').change(function () {
+                let valid_substate = $('#sub_tate').val();
+                if (valid_substate) {
+                    $('#sub_tate').removeClass('is-invalid');
+                    $('#errorMsg')
+                        .text('Please fill all the fields before submitting')
+                        .hide();
+                } else {
+                    $('#sub_tate').addClass('is-invalid');
+                    $('#errorMsg')
+                        .text('Please fill all the fields before submitting')
+                        .show();
+                }
+            });
+
+            $('#Pending_Problem').change(function () {
+                let valid_pendingproblem = $('#Pending_Problem').val();
+                if (valid_pendingproblem) {
+                    $('#Pending_Problem').removeClass('is-invalid');
+                    $('#errorMsg')
+                        .text('Please fill all the fields before submitting')
+                        .hide();
+                } else {
+                    $('#Pending_Problem').addClass('is-invalid');
+                    $('#errorMsg')
+                        .text('Please fill all the fields before submitting')
+                        .show();
+                }
+            });
+
+            // PENDING submit validation
+            $('#submitBtn1').click(function () {
+                let SubState1 = $('#sub_state1').val();
+                let work_notes1 = $('#work_notes1').val();
+                let PendingProblem1 = $('#PendingProblem1').val();
+                let PendingChange1 = $('#PendingChange1').val();
+                let Duplicate1 = $('#duplicate1').val();
+                let cause_code1 = $('#cause_code1').val();
+                let category1 = $('#category1').val();
+                let sub_category1 = $('#sub_category1').val();
+                let details1 = $('#details1').val();
+                let action_taken1 = $('#action_taken1').val();
+                let resolution_type1 = $('#resolution_type1').val();
+                let isvalid1 = true;
+
+                $('.form-control').removeClass('is-invalid');
+                $('#errorMsg1').hide().text('');
+
+                if (!SubState1) {
+                    $('#sub_state1').addClass('is-invalid');
+                    isvalid1 = false;
+                }
+                if (!work_notes1) {
+                    $('#work_notes1').addClass('is-invalid');
+                    isvalid1 = false;
+                }
+
+                if (SubState1 === 'Pending_Problem1') {
+                    if (!PendingProblem1) {
+                        $('#PendingProblem1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                    if (!cause_code1) {
+                        $('#cause_code1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                    if (!category1) {
+                        $('#category1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                    if (!sub_category1) {
+                        $('#sub_category1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                    if (!details1) {
+                        $('#details1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                    if (!action_taken1) {
+                        $('#action_taken1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                    if (!resolution_type1) {
+                        $('#resolution_type1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                }
+
+                if (SubState1 === 'Pending_Change1' && !PendingChange1) {
+                    $('#PendingChange1').addClass('is-invalid');
+                    isvalid1 = false;
+                }
+                if (SubState1 === 'Duplicate1' && !Duplicate1) {
+                    $('#duplicate1').addClass('is-invalid');
+                    isvalid1 = false;
+                }
+
+                if (!isvalid1) {
+                    $('#errorMsg1')
+                        .text('Please fill all the fields before submitting')
+                        .show();
+                    return;
+                }
+
+                const substate1 = $('#sub_state1').val();
+                const worknotes1 = $('#work_notes1').val();
+                const problem_id1 = $('#PendingProblem1').val();
+                const change_id1 = $('#PendingChange1').val();
+                const duplicate_id1 = $('#duplicate1').val();
+                const causeData1 = $('#cause_code1').val();
+                const selectedData1 =
+                    `Category : ${$('#category1').val()}\n` +
+                    `Sub Category : ${$('#sub_category1').val()}\n` +
+                    `RCA : ${$('#details1').val()}\n` +
+                    `Action Taken : ${$('#action_taken1').val()}\n` +
+                    `Resolution Type:${$('#resolution_type1').val()}`;
+
+                if (substate1 !== 'Pending_Problem1') {
+                    $('#b1').hide();
+                }
+                if (substate1 !== 'Pending_Change1') {
+                    $('#b2').hide();
+                }
+                if (substate1 !== 'Duplicate1') {
+                    $('#b3').hide();
+                }
+
+                $('#modalState1').val(substate1);
+                $('#modalWork1').val(worknotes1);
+                $('#modalProblem1').val(problem_id1);
+                $('#modalChange1').val(change_id1);
+                $('#modalDuplicate1').val(duplicate_id1);
+                $('#modalCause1').val(causeData1);
+                $('#modalText1').val(selectedData1);
+
+                $('#myModal1').modal('show');
+            });
+
+            // Reset
+            $('#resetBtn').click(function () {
+                resetForm();
+            });
+
+            function resetForm() {
+                $('#cause_code').val('');
+                $('#category').html(
+                    '<option value="">Select Category</option>'
+                );
+                $('#sub_category').html(
+                    '<option value="">Select sub_category</option>'
+                );
+                $('#details').val('');
+                $('#action_taken').val('');
+                $('#preventive_action').val('');
+                $('#resolution_type').val('');
+                $('.form-control').removeClass('is-invalid');
+                $('#errorMsg').hide().text('');
+            }
+        </script>
+    </body>
+</html>
+<html>
+    <head>
+        <title>IRR</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='node_modules2/bootstrap/dist/css/bootstrap.min.css') }}"
+        >
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='node_modules2/datatables.net-bs5/css/dataTables.bootstrap5.min.css') }}"
+        >
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        >
+        <link
+            rel="icon"
+            type="image/png"
+            href="{{ url_for('static', filename='image/KeyBank_icon.svg') }}"
+        >
+        <link
+            rel="stylesheet"
+            type="text/css"
+            href="{{ url_for('static', filename='styles/style.css') }}"
+        >
+    </head>
+    <body>
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <h2 style="color: white;">IRR</h2>
+                </a>
+                <a class="navbar-brand" href="#" style="color: white;">DAG</a>
+
+                <button
+                    class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav"
+                    aria-controls="navbarNav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <img
+                                src="{{ url_for('static', filename='image/logo.png') }}"
+                                class="image"
+                            >
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <br>
+
+        <div class="container">
+            <!-- Back / Home row -->
+            <div class="row">
+                <div class="col-10 col-xxl-10 col-xl-10 col-lg-10 col-md-10 col-sm-10">
+                    {% if original_resolution == "NA" %}
+                    <form action="{{ url_for('show_related_incidents') }}" method="post">
+                        <input
+                            type="hidden"
+                            name="incident_number"
+                            value="{{ original_incident }}"
+                        >
+                        <button class="link-btn" type="submit">
+                            <i
+                                class="fa fa-arrow-left fa-2x"
+                                style="color: rgb(204, 0, 0);"
+                                aria-hidden="true"
+                            ></i>
+                            <span
+                                style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;"
+                            >
+                                Back
+                            </span>
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="{{ url_for('view_resolution') }}" method="post">
+                        <input
+                            type="hidden"
+                            name="incident_number"
+                            value="{{ incident_number }}"
+                        >
+                        <input
+                            type="hidden"
+                            name="original_incident"
+                            value="{{ original_incident }}"
+                        >
+                        <input
+                            type="hidden"
+                            name="original_ShortDescription"
+                            value="{{ original_ShortDescription }}"
+                        >
+                        <button class="link-btn" type="submit">
+                            <i
+                                class="fa fa-arrow-left fa-2x"
+                                style="color: rgb(204, 0, 0);"
+                                aria-hidden="true"
+                            ></i>
+                            <span
+                                style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;"
+                            >
+                                Back
+                            </span>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                <div class="col-2 col-xxl-2 col-xl-2 col-lg-2 col-md-2 col-sm-2 text-end">
+                    <a href="{{ url_for('home') }}">
+                        <i
+                            class="fa fa-home fa-2x"
+                            style="color: rgb(204, 0, 0);"
+                            aria-hidden="true"
+                        ></i>
+                        <span
+                            style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;"
+                        >
+                            Home
+                        </span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main form content -->
+            <div class="row">
+                <div class="col-12 col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12">
+                    <label for="state"><b>State<span style="color: red;">*</span></b></label>
+                    <select id="state" class="form-control">
+                        <option value="resolved">Resolved</option>
+                        <option value="pending">Pending</option>
+                    </select>
+
+                    <!-- RESOLVED GROUP -->
+                    <div id="resolved" class="group">
+                        <label for="sub_state">
+                            <b>Sub State <span style="color: red;">*</span></b>
+                        </label>
+                        <select id="sub_tate" class="form-control">
+                            <option value="">---Select Sub State---</option>
+                            <option value="Pending User Info">Pending User Info</option>
+                            <option value="Solved (Work Around)">Solved(Work Around)</option>
+                            <option value="Pending Vendor">Pending Vendor</option>
+                            <option value="Solved (Permanently)">Solved(Permanently)</option>
+                            <option value="Access and Authentication">Access and Authentication</option>
+                            <option value="Pending_Problem">Pending Problem</option>
+                            <option value="Pending_Change">Pending Change</option>
+                            <option value="User Error/Knowledge">User Error/Knowledge</option>
+                            <option value="Not Reproducible">Not Reproducible</option>
+                            <option value="Unknown">Unknown</option>
+                            <option value="Closed/Resolved by Requested for">
+                                Closed/Resolved by Requested for
+                            </option>
+                            <option value="Email Spam">Email Spam</option>
+                            <option value="Duplicate">Duplicate</option>
+                            <option value="No Action Taken">No Action Taken</option>
+                        </select>
+
+                        <div id="Pending_Problem" class="problem_id">
+                            <label for="Pending_Problem">
+                                <b>Problem No. <span style="color: red;">*</span></b>
+                            </label>
+                            <textarea
+                                id="PendingProblem"
+                                class="form-control"
+                                rows="1"
+                            ></textarea>
+                        </div>
+
+                        <div id="Pending_Change" class="change_id">
+                            <label for="Pending_Change">
+                                <b>Change No. <span style="color: red;">*</span></b>
+                            </label>
+                            <textarea
+                                id="PendingChange"
+                                class="form-control"
+                                rows="1"
+                            ></textarea>
+                        </div>
+
+                        <div id="Duplicate" class="duplicate">
+                            <label for="Duplicate">
+                                <b>Parent Incident <span style="color: red;">*</span></b>
+                            </label>
+                            <textarea
+                                id="duplicate"
+                                class="form-control"
+                                rows="1"
+                            ></textarea>
+                        </div>
+
+                        <label for="cause_code">
+                            <b>Cause Code <span style="color: red;">*</span></b>
+                        </label>
+                        <select id="cause_code" class="form-control">
+                            <option value="">---Select Cause Code---</option>
+                        </select>
+
+                        <label for="category">
+                            <b>Category <span style="color: red;">*</span></b>
+                        </label>
+                        <select id="category" class="form-control">
+                            <option value="">---Select Category---</option>
+                        </select>
+
+                        <label for="sub_category">
+                            <b>Sub Category <span style="color: red;">*</span></b>
+                        </label>
+                        <select id="sub_category" class="form-control">
+                            <option value="">---Select Sub Category---</option>
+                        </select>
+
+                        <label for="work_notes"><b>Work Notes</b></label>
+                        <textarea
+                            id="work_notes"
+                            class="form-control"
+                            rows="3"
+                        ></textarea>
+
+                        <!-- Details w/ AI scoring -->
+                        <label for="details">
+                            <b>Detailed RCA</b>
+                            <span style="color: red;">*</span>
+                            <span class="score-indicator">
+                                Score:
+                                <span id="details-label-score">0</span>
+                            </span>
+                        </label>
+                        <textarea
+                            id="details"
+                            class="form-control"
+                            rows="3"
+                        >{{ original_resolution }}</textarea>
+                        <div id="detailsFeedback" class="feedback"></div>
+
+                        <!-- Action Taken w/ AI scoring -->
+                        <label for="action_taken">
+                            <b>Action Taken</b>
+                            <span style="color: red;">*</span>
+                            <span class="score-indicator">
+                                Score:
+                                <span id="action-label-score">0</span>
+                            </span>
+                        </label>
+                        <textarea
+                            id="action_taken"
+                            class="form-control"
+                            rows="3"
+                        ></textarea>
+                        <div id="actionFeedback" class="feedback"></div>
+
+                        <!-- AI scoring script (calculate-score endpoint) -->
+                        <script>
+                            let detailsScore = 0;
+                            let actionScore = 0;
+
+                            document.addEventListener('DOMContentLoaded', function () {
+                                const detailsTextArea =
+                                    document.getElementById('details');
+                                const actionTakenTextArea =
+                                    document.getElementById('action_taken');
+                                const detailsScoreElement =
+                                    document.getElementById('details-label-score');
+                                const actionScoreElement =
+                                    document.getElementById('action-label-score');
+                                const detailsFeedback =
+                                    document.getElementById('detailsFeedback');
+                                const actionFeedback =
+                                    document.getElementById('actionFeedback');
+
+                                // Split the summarized resolution into "details" and "Resolution Activity"
+                                function splitInitialText(text) {
+                                    const parts =
+                                        text.split(/Resolution Activity:/i);
+
+                                    if (parts.length > 1) {
+                                        detailsTextArea.value =
+                                            parts[0].trim();
+                                        actionTakenTextArea.value =
+                                            parts[1].trim();
+
+                                        calculateScore(
+                                            detailsTextArea.value,
+                                            'details'
+                                        );
+                                        calculateScore(
+                                            actionTakenTextArea.value,
+                                            'action_taken'
+                                        );
+                                    } else {
+                                        detailsTextArea.value = text.trim();
+                                        calculateScore(
+                                            text.trim(),
+                                            'details'
+                                        );
+                                    }
+                                }
+
+                                splitInitialText(detailsTextArea.value);
+
+                                detailsTextArea.addEventListener('input', (e) =>
+                                    handleInput(e, 'details')
+                                );
+                                actionTakenTextArea.addEventListener(
+                                    'input',
+                                    (e) => handleInput(e, 'action_taken')
+                                );
+
+                                function handleInput(event, field) {
+                                    calculateScore(event.target.value, field);
+                                }
+
+                                function calculateScore(text, field) {
+                                    fetch('/calculate-score', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type':
+                                                'application/json',
+                                        },
+                                        body: JSON.stringify({ text: text }),
+                                    })
+                                        .then((response) => response.json())
+                                        .then((data) => {
+                                            updateFieldScore(field, data.score);
+                                        })
+                                        .catch((error) => {
+                                            console.error(
+                                                'Error calculating score:',
+                                                error
+                                            );
+                                            const feedbackElement =
+                                                field === 'details'
+                                                    ? detailsFeedback
+                                                    : actionFeedback;
+                                            feedbackElement.textContent =
+                                                'Error calculating score. Please try again.';
+                                            feedbackElement.style.backgroundColor =
+                                                '#ffebee';
+                                        });
+                                }
+
+                                function updateFieldScore(field, score) {
+                                    const scoreElement =
+                                        field === 'details'
+                                            ? detailsScoreElement
+                                            : actionScoreElement;
+                                    const feedbackElement =
+                                        field === 'details'
+                                            ? detailsFeedback
+                                            : actionFeedback;
+
+                                    scoreElement.textContent = score;
+
+                                    if (field === 'details') {
+                                        detailsScore = score;
+                                    } else {
+                                        actionScore = score;
+                                    }
+
+                                    updateFeedback(score, feedbackElement);
+                                }
+
+                                function updateFeedback(score, element) {
+                                    if (score < 40) {
+                                        element.textContent =
+                                            'Poor details. Please add more details & keywords.';
+                                        element.style.backgroundColor =
+                                            '#ffebee';
+                                    } else if (score < 70) {
+                                        element.textContent =
+                                            'Almost there! Plese add more details & keywords.';
+                                        element.style.backgroundColor =
+                                            '#fff3e0';
+                                    } else {
+                                        element.textContent =
+                                            'Details looks good.';
+                                        element.style.backgroundColor =
+                                            '#e8f5e9';
+                                    }
+                                }
+                            });
+                        </script>
+
+                        <label for="resolution_type">
+                            <b>Resolution Type
+                                <span style="color: red;">*</span></b>
+                        </label>
+                        <select id="resolution_type" class="form-control">
+                            <option value="">---Select Resolution Type---</option>
+                            <option value="Fix Deployed">Fix Deployed</option>
+                            <option value="Workaround Implemented">
+                                Workaround Implemented
+                            </option>
+                            <option value="Configuration Change">
+                                Configuration Change
+                            </option>
+                            <option value="Performance Optimization">
+                                Performance Optimization
+                            </option>
+                            <option value="No Action Required">
+                                No Action Required
+                            </option>
+                        </select>
+
+                        <button id="submitBtn" class="btn btn-primary mt-3">
+                            Submit
+                        </button>
+                        <div
+                            id="errorMsg"
+                            class="text-danger mt-2"
+                            style="display: none;"
+                        ></div>
+
+                        <button id="resetBtn" class="btn btn-danger mt-3">
+                            Reset
+                        </button>
+
+                        <!-- Modal for RESOLVED submit -->
+                        <div class="modal fade" id="myModal">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title">
+                                            Selected Data
+                                        </h4>
+                                        <button
+                                            type="button"
+                                            class="close"
+                                            data-dismiss="modal"
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+
+                                    <form id="textForm">
+                                        <div class="modal-body">
+                                            <label>Sub State</label>
+                                            <input
+                                                type="text"
+                                                id="modalState"
+                                                class="form-control"
+                                                readonly
+                                            >
+
+                                            <div id="a1">
+                                                <label>Problem Number</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalProblem"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                            </div>
+
+                                            <div id="a2">
+                                                <label>Change Number</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalChange"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                            </div>
+
+                                            <div id="a3">
+                                                <label>Duplicate Value</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalDuplicate"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                            </div>
+
+                                            <label>Cause Code</label>
+                                            <input
+                                                type="text"
+                                                id="modalCause"
+                                                class="form-control"
+                                                readonly
+                                            >
+
+                                            <label>Closure Note</label>
+                                            <textarea
+                                                id="modalText"
+                                                class="form-control"
+                                                rows="4"
+                                                readonly
+                                            ></textarea>
+
+                                            <input
+                                                id="original_inc"
+                                                type="text"
+                                                value="{{ original_incident }}"
+                                                hidden
+                                            >
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button
+                                                id="saveBtn"
+                                                class="btn btn-success"
+                                                type="submit"
+                                            >
+                                                Submit
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-default"
+                                                data-bs-dismiss="modal"
+                                            >
+                                                Close
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <!-- Modal submit script -->
+                                    <script>
+                                        const form = document.getElementById(
+                                            'textForm'
+                                        );
+                                        form.addEventListener(
+                                            'submit',
+                                            async function (e) {
+                                                e.preventDefault();
+
+                                                const data = {
+                                                    cause_code:
+                                                        document.getElementById(
+                                                            'cause_code'
+                                                        ).value,
+                                                    sub_tate:
+                                                        document.getElementById(
+                                                            'sub_tate'
+                                                        ).value,
+                                                    original_inc:
+                                                        document.getElementById(
+                                                            'original_inc'
+                                                        ).value,
+                                                    modalText:
+                                                        document.getElementById(
+                                                            'modalText'
+                                                        ).value,
+                                                    workNotes:
+                                                        document.getElementById(
+                                                            'work_notes'
+                                                        ).value,
+                                                    Pending_problem:
+                                                        document.getElementById(
+                                                            'PendingProblem'
+                                                        ).value,
+                                                    Pending_Change:
+                                                        document.getElementById(
+                                                            'PendingChange'
+                                                        ).value,
+                                                    Duplicate:
+                                                        document.getElementById(
+                                                            'duplicate'
+                                                        ).value,
+                                                };
+
+                                                const response =
+                                                    await fetch('/update', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Content-Type':
+                                                                'application/json',
+                                                        },
+                                                        body: JSON.stringify({
+                                                            content: data,
+                                                        }),
+                                                    });
+
+                                                await response.json();
+                                                alert(
+                                                    'Incident is closed in ServiceNow'
+                                                );
+                                                window.location.href = '/';
+                                            }
+                                        );
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PENDING GROUP -->
+                    <div id="pending" class="group">
+                        <label for="sub_state1">
+                            Sub State <span style="color: red;">*</span>
+                        </label>
+                        <select id="sub_state1" class="form-control">
+                            <option value="">---Select Sub State---</option>
+                            <option value="Pending User Info">Pending User Info</option>
+                            <option value="Solved (Work Around)">Solved(Work Around)</option>
+                            <option value="Pending Vendor">Pending Vendor</option>
+                            <option value="Solved (Permanently)">Solved(Permanently)</option>
+                            <option value="Access and Authentication">Access and Authentication</option>
+                            <option value="Pending_Problem1">Pending Problem</option>
+                            <option value="Pending_Change1">Pending Change</option>
+                            <option value="User Error/Knowledge">User Error/Knowledge</option>
+                            <option value="Not Reproducible">Not Reproducible</option>
+                            <option value="Unknown">Unknown</option>
+                            <option value="Closed/Resolved by Requested for">
+                                Closed/Resolved by Requested for
+                            </option>
+                            <option value="Email Spam">Email Spam</option>
+                            <option value="Duplicate1">Duplicate</option>
+                            <option value="No Action Taken">No Action Taken</option>
+                        </select>
+
+                        <div id="Pending_Problem1" class="problem_id1">
+                            <label for="Pending_Problem1">
+                                Problem No. <span style="color: red;">*</span>
+                            </label>
+                            <textarea
+                                id="PendingProblem1"
+                                class="form-control"
+                                rows="1"
+                            ></textarea>
+
+                            <label for="cause_code1">
+                                Cause Code <span style="color: red;">*</span>
+                            </label>
+                            <select id="cause_code1" class="form-control">
+                                <option value="">---Select Cause Code---</option>
+                            </select>
+
+                            <label for="category1">
+                                Category <span style="color: red;">*</span>
+                            </label>
+                            <select id="category1" class="form-control">
+                                <option value="">---Select Category---</option>
+                            </select>
+
+                            <label for="sub_category1">
+                                Sub Category <span style="color: red;">*</span>
+                            </label>
+                            <select id="sub_category1" class="form-control">
+                                <option value="">---Select Sub Category---</option>
+                            </select>
+
+                            <label for="details1">
+                                Detailed RCA <span style="color: red;">*</span>
+                            </label>
+                            <textarea
+                                id="details1"
+                                class="form-control"
+                                rows="3"
+                            ></textarea>
+
+                            <label for="action_taken1">
+                                Action Taken <span style="color: red;">*</span>
+                            </label>
+                            <textarea
+                                id="action_taken1"
+                                class="form-control"
+                                rows="3"
+                            ></textarea>
+
+                            <p
+                                style="display: none;"
+                                id="mySentence1"
+                            >{{ original_resolution }}</p>
+
+                            <script>
+                                const sentence1 =
+                                    document.getElementById('mySentence1')
+                                        .textContent;
+                                const keyword1 = 'Resolution';
+                                const parts1 = sentence1.split(keyword1);
+
+                                document.getElementById('details1').value =
+                                    (parts1[0] || '').trim();
+                                document.getElementById('action_taken1').value =
+                                    parts1[1] || '';
+                            </script>
+
+                            <label for="resolution_type1">
+                                Resolution Type
+                                <span style="color: red;">*</span>
+                            </label>
+                            <select id="resolution_type1" class="form-control">
+                                <option value="">---Select Resolution Type---</option>
+                                <option value="Fix Deployed">Fix Deployed</option>
+                                <option value="Workaround Implemented">
+                                    Workaround Implemented
+                                </option>
+                                <option value="Configuration Change">
+                                    Configuration Change
+                                </option>
+                                <option value="Performance Optimization">
+                                    Performance Optimization
+                                </option>
+                                <option value="No Action Required">
+                                    No Action Required
+                                </option>
+                            </select>
+                        </div>
+
+                        <div id="Pending_Change1" class="change_id1">
+                            <label for="Pending_Change1">
+                                Change No. <span style="color: red;">*</span>
+                            </label>
+                            <textarea
+                                id="PendingChange1"
+                                class="form-control"
+                                rows="1"
+                            ></textarea>
+                        </div>
+
+                        <div id="Duplicate1" class="duplicate1">
+                            <label for="Duplicate">
+                                Parent Incident <span style="color: red;">*</span>
+                            </label>
+                            <textarea
+                                id="duplicate1"
+                                class="form-control"
+                                rows="1"
+                            ></textarea>
+                        </div>
+
+                        <label for="work_notes1">Work Notes</label>
+                        <textarea
+                            id="work_notes1"
+                            class="form-control"
+                            rows="3"
+                        ></textarea>
+
+                        <button id="submitBtn1" class="btn btn-primary mt-3">
+                            Submit
+                        </button>
+                        <div
+                            id="errorMsg1"
+                            class="text-danger mt-2"
+                            style="display: none;"
+                        ></div>
+
+                        <!-- Modal for PENDING submit -->
+                        <div class="modal fade" id="myModal1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title">
+                                            Selected Data
+                                        </h4>
+                                        <button
+                                            type="button"
+                                            class="close"
+                                            data-dismiss="modal"
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+
+                                    <form id="textForm1">
+                                        <div class="modal-body">
+                                            <label>Sub State</label>
+                                            <input
+                                                type="text"
+                                                id="modalState1"
+                                                class="form-control"
+                                                readonly
+                                            >
+
+                                            <label>Work Notes</label>
+                                            <input
+                                                type="text"
+                                                id="modalWork1"
+                                                class="form-control"
+                                                readonly
+                                            >
+
+                                            <input
+                                                id="original_inc"
+                                                type="text"
+                                                value="{{ original_incident }}"
+                                                hidden
+                                            >
+
+                                            <div id="b1">
+                                                <label>Problem Number</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalProblem1"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                                <label>Cause Code</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalCause1"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                                <label>Closure Note</label>
+                                                <textarea
+                                                    id="modalText1"
+                                                    class="form-control"
+                                                    rows="4"
+                                                    readonly
+                                                ></textarea>
+                                            </div>
+
+                                            <div id="b2">
+                                                <label>Change Number</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalChange1"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                            </div>
+
+                                            <div id="b3">
+                                                <label>Duplicate Value</label>
+                                                <input
+                                                    type="text"
+                                                    id="modalDuplicate1"
+                                                    class="form-control"
+                                                    readonly
+                                                >
+                                            </div>
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button
+                                                id="saveBtn1"
+                                                class="btn btn-success"
+                                                type="submit"
+                                            >
+                                                Submit
+                                            </button>
+                                            <button
+                                                id="clsBtn"
+                                                type="button"
+                                                class="btn btn-default"
+                                                data-dismiss="modal"
+                                            >
+                                                Close
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <script>
+                                        const form1 =
+                                            document.getElementById('textForm1');
+                                        form1.addEventListener(
+                                            'submit',
+                                            async function (e) {
+                                                e.preventDefault();
+
+                                                const data1 = {
+                                                    modalState1:
+                                                        document.getElementById(
+                                                            'modalState1'
+                                                        ).value,
+                                                    original_inc:
+                                                        document.getElementById(
+                                                            'original_inc'
+                                                        ).value,
+                                                    modalWork:
+                                                        document.getElementById(
+                                                            'modalWork1'
+                                                        ).value,
+                                                    modalText1:
+                                                        document.getElementById(
+                                                            'modalText1'
+                                                        ).value,
+                                                    Pending_problem1:
+                                                        document.getElementById(
+                                                            'PendingProblem1'
+                                                        ).value,
+                                                    Pending_Change1:
+                                                        document.getElementById(
+                                                            'PendingChange1'
+                                                        ).value,
+                                                    Duplicate1:
+                                                        document.getElementById(
+                                                            'duplicate1'
+                                                        ).value,
+                                                    cause_code1:
+                                                        document.getElementById(
+                                                            'cause_code1'
+                                                        ).value,
+                                                };
+
+                                                const response =
+                                                    await fetch('/update1', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Content-Type':
+                                                                'application/json',
+                                                        },
+                                                        body: JSON.stringify({
+                                                            content: data1,
+                                                        }),
+                                                    });
+
+                                                await response.json();
+                                                alert(
+                                                    'Incident is updated in ServiceNow'
+                                                );
+                                                window.location.href = '/';
+                                            }
+                                        );
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /pending -->
+                </div>
+            </div>
+        </div>
+
+        <!-- JS assets -->
+        <script src="{{ url_for('static', filename='node_modules2/jquery/dist/jquery.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='node_modules2/datatables.net/js/dataTables.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='node_modules2/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+
+        <!-- Shared jQuery behaviour -->
+        <script>
+            $(document).ready(function () {
+                // Default view
+                $('.group').hide();
+                $('#resolved').show();
+
+                $('#state').change(function () {
+                    $('.group').hide();
+                    $('#' + $(this).val()).show();
+                });
+
+                // show / hide nested problem/change/duplicate for RESOLVED
+                $('.problem_id').hide();
+                $('.change_id').hide();
+                $('.duplicate').hide();
+                $('#sub_tate').change(function () {
+                    $('.problem_id').hide();
+                    $('.change_id').hide();
+                    $('.duplicate').hide();
+                    $('#' + $(this).val()).show();
+                });
+
+                // show / hide nested problem/change/duplicate for PENDING
+                $('.problem_id1').hide();
+                $('.change_id1').hide();
+                $('.duplicate1').hide();
+                $('#sub_state1').change(function () {
+                    $('.problem_id1').hide();
+                    $('.change_id1').hide();
+                    $('.duplicate1').hide();
+                    $('#' + $(this).val()).show();
+                });
+            });
+        </script>
+
+        <!-- Cause-code / Category cascading dropdowns (resolved + pending) -->
+        <script>
+            let jsonData = {};
+
+            $.getJSON('/static/data.json', function (data) {
+                jsonData = data;
+                populateCausecode();
+            });
+
+            function populateCausecode() {
+                let causecodeDropdown = $('#cause_code');
+                $.each(jsonData, function (cause_code) {
+                    causecodeDropdown.append(
+                        `<option value="${cause_code}">${cause_code}</option>`
+                    );
+                });
+            }
+
+            $('#cause_code').change(function () {
+                let cause_code = $(this).val();
+                let categoryDropdown = $('#category').html(
+                    '<option value="">Select Category</option>'
+                );
+                let subcategoryDropdown = $('#sub_category').html(
+                    '<option value="">Select sub_category</option>'
+                );
+
+                if (cause_code) {
+                    $.each(jsonData[cause_code], function (category) {
+                        categoryDropdown.append(
+                            `<option value="${category}">${category}</option>`
+                        );
+                    });
+                }
+            });
+
+            $('#category').change(function () {
+                let category = $(this).val();
+                let cause_code = $('#cause_code').val();
+                let subcategoryDropdown = $('#sub_category').html(
+                    '<option value="">Select sub_category</option>'
+                );
+
+                if (category && cause_code) {
+                    $.each(
+                        jsonData[cause_code][category],
+                        function (index, sub_category) {
+                            subcategoryDropdown.append(
+                                `<option value="${sub_category}">${sub_category}</option>`
+                            );
+                        }
+                    );
+                }
+            });
+
+            // Pending group json
+            let jsonData1 = {};
+
+            $.getJSON('/static/data.json', function (data1) {
+                jsonData1 = data1;
+                populateCausecode1();
+            });
+
+            function populateCausecode1() {
+                let causecodeDropdown1 = $('#cause_code1');
+                $.each(jsonData1, function (cause_code1) {
+                    causecodeDropdown1.append(
+                        `<option value="${cause_code1}">${cause_code1}</option>`
+                    );
+                });
+            }
+
+            $('#cause_code1').change(function () {
+                let cause_code1 = $(this).val();
+                let categoryDropdown1 = $('#category1').html(
+                    '<option value="">Select Category</option>'
+                );
+                let subcategoryDropdown1 = $('#sub_category1').html(
+                    '<option value="">Select sub_category</option>'
+                );
+
+                if (cause_code1) {
+                    $.each(jsonData1[cause_code1], function (category1) {
+                        categoryDropdown1.append(
+                            `<option value="${category1}">${category1}</option>`
+                        );
+                    });
+                }
+            });
+
+            $('#category1').change(function () {
+                let category1 = $(this).val();
+                let cause_code1 = $('#cause_code1').val();
+                let subcategoryDropdown1 = $('#sub_category1').html(
+                    '<option value="">Select sub_category</option>'
+                );
+
+                if (category1 && cause_code1) {
+                    $.each(
+                        jsonData[cause_code1][category1],
+                        function (index1, sub_category1) {
+                            subcategoryDropdown1.append(
+                                `<option value="${sub_category1}">${sub_category1}</option>`
+                            );
+                        }
+                    );
+                }
+            });
+
+            // RESOLVED submit validation
+            $('#submitBtn').click(function () {
+                let SubState = $('#sub_tate').val();
+                let cause_code = $('#cause_code').val();
+                let category = $('#category').val();
+                let sub_category = $('#sub_category').val();
+                let details = $('#details').val();
+                let action_taken = $('#action_taken').val();
+                let resolution_type = $('#resolution_type').val();
+                let PendingProblem = $('#PendingProblem').val();
+                let PendingChange = $('#PendingChange').val();
+                let Duplicate = $('#duplicate').val();
+                let isvalid = true;
+
+                $('.form-control').removeClass('is-invalid');
+                $('#errorMsg').hide().text('');
+
+                if (!SubState) {
+                    $('#sub_tate').addClass('is-invalid');
+                    isvalid = false;
+                }
+                if (!cause_code) {
+                    $('#cause_code').addClass('is-invalid');
+                    isvalid = false;
+                }
+                if (!category) {
+                    $('#category').addClass('is-invalid');
+                    isvalid = false;
+                }
+                if (!sub_category) {
+                    $('#sub_category').addClass('is-invalid');
+                    isvalid = false;
+                }
+                if (!details || detailsScore < 75) {
+                    $('#details').addClass('is-invalid');
+                    isvalid = false;
+                }
+                if (!action_taken || actionScore < 75) {
+                    $('#action_taken').addClass('is-invalid');
+                    isvalid = false;
+                }
+                if (!resolution_type) {
+                    $('#resolution_type').addClass('is-invalid');
+                    isvalid = false;
+                }
+
+                if (SubState === 'Pending_Problem' && !PendingProblem) {
+                    $('#PendingProblem').addClass('is-invalid');
+                    isvalid = false;
+                }
+
+                if (SubState === 'Pending_Change' && !PendingChange) {
+                    $('#PendingChange').addClass('is-invalid');
+                    isvalid = false;
+                }
+
+                if (SubState === 'Duplicate' && !Duplicate) {
+                    $('#duplicate').addClass('is-invalid');
+                    isvalid = false;
+                }
+
+                if (!isvalid) {
+                    $('#errorMsg')
+                        .text('Please fill all the fields before submitting')
+                        .show();
+                    return;
+                }
+
+                const substate = $('#sub_tate').val();
+                const problem_id = $('#PendingProblem').val();
+                const change_id = $('#PendingChange').val();
+                const duplicate_id = $('#duplicate').val();
+                const causeData = $('#cause_code').val();
+                const selectedData =
+                    `Category : ${$('#category').val()}\n` +
+                    `Sub Category : ${$('#sub_category').val()}\n` +
+                    `RCA : ${$('#details').val()}\n` +
+                    `Action Taken : ${$('#action_taken').val()}\n` +
+                    `Resolution Type:${$('#resolution_type').val()}`;
+
+                if (substate !== 'Pending_Problem') {
+                    $('#a1').hide();
+                }
+                if (substate !== 'Pending_Change') {
+                    $('#a2').hide();
+                }
+                if (substate !== 'Duplicate') {
+                    $('#a3').hide();
+                }
+
+                $('#modalState').val(substate);
+                $('#modalProblem').val(problem_id);
+                $('#modalChange').val(change_id);
+                $('#modalDuplicate').val(duplicate_id);
+                $('#modalCause').val(causeData);
+                $('#modalText').val(selectedData);
+
+                $('#myModal').modal('show');
+            });
+
+            // Basic change logger hook
+            document
+                .querySelector('.form-control')
+                .addEventListener('change', function (event) {
+                    console.log(
+                        'Input changed:',
+                        event.target.name,
+                        'New value:',
+                        event.target.value
+                    );
+                    yourFunctionToCall();
+                });
+
+            function yourFunctionToCall() {
+                console.log('Form change detected!');
+            }
+
+            $('#sub_tate').change(function () {
+                let valid_substate = $('#sub_tate').val();
+                if (valid_substate) {
+                    $('#sub_tate').removeClass('is-invalid');
+                    $('#errorMsg')
+                        .text('Please fill all the fields before submitting')
+                        .hide();
+                } else {
+                    $('#sub_tate').addClass('is-invalid');
+                    $('#errorMsg')
+                        .text('Please fill all the fields before submitting')
+                        .show();
+                }
+            });
+
+            $('#Pending_Problem').change(function () {
+                let valid_pendingproblem = $('#Pending_Problem').val();
+                if (valid_pendingproblem) {
+                    $('#Pending_Problem').removeClass('is-invalid');
+                    $('#errorMsg')
+                        .text('Please fill all the fields before submitting')
+                        .hide();
+                } else {
+                    $('#Pending_Problem').addClass('is-invalid');
+                    $('#errorMsg')
+                        .text('Please fill all the fields before submitting')
+                        .show();
+                }
+            });
+
+            // PENDING submit validation
+            $('#submitBtn1').click(function () {
+                let SubState1 = $('#sub_state1').val();
+                let work_notes1 = $('#work_notes1').val();
+                let PendingProblem1 = $('#PendingProblem1').val();
+                let PendingChange1 = $('#PendingChange1').val();
+                let Duplicate1 = $('#duplicate1').val();
+                let cause_code1 = $('#cause_code1').val();
+                let category1 = $('#category1').val();
+                let sub_category1 = $('#sub_category1').val();
+                let details1 = $('#details1').val();
+                let action_taken1 = $('#action_taken1').val();
+                let resolution_type1 = $('#resolution_type1').val();
+                let isvalid1 = true;
+
+                $('.form-control').removeClass('is-invalid');
+                $('#errorMsg1').hide().text('');
+
+                if (!SubState1) {
+                    $('#sub_state1').addClass('is-invalid');
+                    isvalid1 = false;
+                }
+                if (!work_notes1) {
+                    $('#work_notes1').addClass('is-invalid');
+                    isvalid1 = false;
+                }
+
+                if (SubState1 === 'Pending_Problem1') {
+                    if (!PendingProblem1) {
+                        $('#PendingProblem1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                    if (!cause_code1) {
+                        $('#cause_code1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                    if (!category1) {
+                        $('#category1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                    if (!sub_category1) {
+                        $('#sub_category1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                    if (!details1) {
+                        $('#details1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                    if (!action_taken1) {
+                        $('#action_taken1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                    if (!resolution_type1) {
+                        $('#resolution_type1').addClass('is-invalid');
+                        isvalid1 = false;
+                    }
+                }
+
+                if (SubState1 === 'Pending_Change1' && !PendingChange1) {
+                    $('#PendingChange1').addClass('is-invalid');
+                    isvalid1 = false;
+                }
+                if (SubState1 === 'Duplicate1' && !Duplicate1) {
+                    $('#duplicate1').addClass('is-invalid');
+                    isvalid1 = false;
+                }
+
+                if (!isvalid1) {
+                    $('#errorMsg1')
+                        .text('Please fill all the fields before submitting')
+                        .show();
+                    return;
+                }
+
+                const substate1 = $('#sub_state1').val();
+                const worknotes1 = $('#work_notes1').val();
+                const problem_id1 = $('#PendingProblem1').val();
+                const change_id1 = $('#PendingChange1').val();
+                const duplicate_id1 = $('#duplicate1').val();
+                const causeData1 = $('#cause_code1').val();
+                const selectedData1 =
+                    `Category : ${$('#category1').val()}\n` +
+                    `Sub Category : ${$('#sub_category1').val()}\n` +
+                    `RCA : ${$('#details1').val()}\n` +
+                    `Action Taken : ${$('#action_taken1').val()}\n` +
+                    `Resolution Type:${$('#resolution_type1').val()}`;
+
+                if (substate1 !== 'Pending_Problem1') {
+                    $('#b1').hide();
+                }
+                if (substate1 !== 'Pending_Change1') {
+                    $('#b2').hide();
+                }
+                if (substate1 !== 'Duplicate1') {
+                    $('#b3').hide();
+                }
+
+                $('#modalState1').val(substate1);
+                $('#modalWork1').val(worknotes1);
+                $('#modalProblem1').val(problem_id1);
+                $('#modalChange1').val(change_id1);
+                $('#modalDuplicate1').val(duplicate_id1);
+                $('#modalCause1').val(causeData1);
+                $('#modalText1').val(selectedData1);
+
+                $('#myModal1').modal('show');
+            });
+
+            // Reset
+            $('#resetBtn').click(function () {
+                resetForm();
+            });
+
+            function resetForm() {
+                $('#cause_code').val('');
+                $('#category').html(
+                    '<option value="">Select Category</option>'
+                );
+                $('#sub_category').html(
+                    '<option value="">Select sub_category</option>'
+                );
+                $('#details').val('');
+                $('#action_taken').val('');
+                $('#preventive_action').val('');
+                $('#resolution_type').val('');
+                $('.form-control').removeClass('is-invalid');
+                $('#errorMsg').hide().text('');
+            }
+        </script>
+    </body>
+</html>

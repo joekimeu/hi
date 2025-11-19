@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IRR + DAG</title>
+
+    <!-- Bootstrap 5 + DataTables (Bootstrap 5 theme) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.css" rel="stylesheet"/>
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"/>
+
+    <!-- Favicon + App styles -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/KeyBank_icon.svg') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}"/>
+</head>
+
+<body>
+
+    <!-- HEADER / NAVBAR -->
+    <nav class="navbar navbar-expand-lg border-bottom app-navbar">
+        <div class="container-fluid px-3">
+
+            <!-- Brand -->
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('home') }}">
+                <span class="brand-dot"></span>
+                <span class="app-header-title fw-semibold">Intelligent Resolution Recommender</span>
+                <span class="opacity-75">/</span>
+                <span class="app-header-subtitle fw-bold">DAG</span>
+            </a>
+
+            <!-- Mobile toggle -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Right side (logo + user) -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center gap-3">
+
+                    <!-- User info -->
+                    <li class="nav-item d-flex align-items-center app-user">
+                        <span class="signed-in-label">Signed in as</span>
+                        <span id="racf" class="signed-in-user">{{ user }}</span>
+                    </li>
+
+                    <!-- Logo -->
+                    <li class="nav-item">
+                        <img src="{{ url_for('static', filename='image/logo.png') }}" class="image" alt="Logo" height="24"/>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- MAIN CONTENT -->
+    {% block content %}
+    {% endblock %}
+
+
+    <!-- FOOTER -->
+    <footer class="app-footer mt-4">
+        <div class="container py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center text-center text-sm-start">
+            <span class="footer-title fw-semibold">Intelligent Resolution Recommender</span>
+            <span class="footer-subtext text-muted mt-2 mt-sm-0">Powered by DAG · Key Technology</span>
+        </div>
+    </footer>
+
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+<!-- An alternate header with space for a user name
+<html>
+<head>
+    <title>IRR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules2/bootstrap/dist/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules2/datatables.net-bs5/css/dataTables.bootstrap5.min.css') }}">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/KeyBank_icon.svg') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/style.css') }}">
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <h2 style="color: white;">IRR</h2>
+        </a>
+        <a class="navbar-brand" href="#" style="color: white;">DAG</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <p style="margin-top: 10px; color: white;">
+                        <span id="racf">{{ user }}</span>&nbsp;&nbsp;&nbsp;
+                    </p>
+                </li>
+                <li class="nav-item">
+                    <img src="{{ url_for('static', filename='image/logo.png') }}" class="image" alt="Logo">
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav> -->

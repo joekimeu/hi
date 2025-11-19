@@ -1,0 +1,838 @@
+<html>
+  <head>
+    <title>IRR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='node_modules2/bootstrap/dist/css/bootstrap.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='node_modules2/datatables.net-bs5/css/dataTables.bootstrap5.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='image/KeyBank_icon.svg') }}"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='styles/style.css') }}"
+    />
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <a class="navbar-brand" href="#"
+          ><h2 style="color: white">IRR</h2></a
+        >
+        <a class="navbar-brand" href="#" style="color: white">DAG</a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+       <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+                <p style="margin-top: 10px;color:white"><span id="racf">{{user}} </span>&nbsp;&nbsp;&nbsp;</p>
+            </li>
+            <li class="nav-item">
+              <img src="{{ url_for('static', filename='image/logo.png') }}" class="image" />
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container my-4">
+      <div class="row">
+        <div class="col-4 col-xxl-4 col-xl-4 col-lg-4 col-md-4 col-sm-4">
+          <form id="incForm" action="{{url_for('show_related_incidents')}}" method="post">
+            <input type="hidden" name="incident_number" value="{{original_incident}}">
+            <button class="link-btn" type="submit">
+              <i class="fa fa-arrow-left fa-2x" style="color:rgb(204, 0, 0)" aria-hidden="true"></i>
+              <span style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;">Back</span>
+            </button>
+          </form>
+        </div>
+        <div class="col-4 col-xxl-4 col-xl-4 col-lg-4 col-md-4 col-sm-4"></div>
+        <div class="col-4 col-xxl-4 col-xl-4 col-lg-4 col-md-4 col-sm-4 text-end">
+          <a href="{{url_for('home')}}">
+            <i class="fa fa-home fa-2x" style="color:rgb(204, 0, 0)" aria-hidden="true"></i>
+            <span style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;">Home</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="row mt-5">
+        <div class="col-12">
+          <p class="heading">
+            <b>Recommended Resolution for</b>
+            <span style="color:#b30000; font-weight: 400;">{{original_incident}}</span>
+          </p>
+          <p class="heading1">
+            <b>Similar Incident Number: </b>
+            <span id="similarincident_number" style="color:#b30000; font-weight: 300;">{{ incident['Number'] }}</span>
+          </p>
+          <p class="heading1">
+            <b>Description: </b>
+            <span style="color:black; font-weight: 300;">{{ incident['Title'] }}</span>
+          </p>
+          <p class="heading1" style="display: none;">
+            <b>Cause Code: </b>
+            <span style="color:black; font-weight: 300;">{{ incident['Cause code'] }}</span>
+          </p>
+          <p class="heading1">
+            <b>Resolution: </b>
+            <span style="color:black; font-weight: 300;">{{ incident['Resolution'] }}</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="row mt-5">
+        <div class="col-12">   
+          <p style="display:none;" id="force_complete_emailsubject" class="d-none">
+            DAG: {{original_incident}} - Force complete the Job
+          </p>
+          <p style="display:none;" class="force_complete_emailmessage">
+             Hi Team, 
+             Please force complete the below job.<br/>
+             Incident Number: {{original_incident}} <br/>
+             Short Description: {{original_ShortDescription}} <br/><br/>
+             {{ incident['Resolution'] }} <br/>
+             <br/>Kindly acknowledge and inform us once job has been marked as completed.
+          </p>
+          <p style="display:none;" class="force_complete_emailmessage">
+            Thank You!
+            <span style="text-align: left;">IRR Team</span>
+          </p>
+
+          <p style="display:none;" id="auto_restart_emailsubject" class="d-none">
+            DAG: {{original_incident}} - Restart the Job
+          </p>
+          <p style="display:none;" class="auto_restart_emailmessage">
+             Hi Team, 
+             Please restart the below job from top.<br/>
+             Incident Number: {{original_incident}} <br/>
+             Short Description: {{original_ShortDescription}} <br/><br/>
+             {{ incident['Resolution'] }} <br/>
+             <br/>Kindly acknowledge and inform us once job has been restarted.
+          </p>
+          <p style="display:none;" class="auto_restart_emailmessage">
+            Thank You!
+            <span style="text-align: left;">IRR Team</span>
+          </p>
+
+          <input type="hidden" name="subject" id="autorestart_emailsubject">
+          <input type="hidden" name="body" id="autorestart_emailmessage">
+          <button class="btn btn-primary" id="auto_restart_sendBtn">Auto Restart</button>
+          <p id="responseMsg"></p>
+          <p style="display:none;" id="mySentence">{{ incident['Resolution'] }}</p>
+
+          <input type="hidden" name="subject1" id="forcecomplete_emailsubject">
+          <input type="hidden" name="body1" id="forcecomplete_emailmessage">
+          <button class="btn btn-primary" id="force_complete_sendBtn" style="display: none;">Force complete</button>
+          <p id="responseMsg_forcecomplete"></p>
+          <p style="display:none;" id="mySentence_forcecomplete">{{ incident['Resolution'] }}</p>
+        </div>
+      </div>
+
+      <div class="row mt-5">
+        <div class="col-12 col-md-7">
+          <!-- 
+            original_incident, incident['Resolution'] are used in DQ to close the incident
+            incident_number, original_ShortDescription are used for back button in resolution page
+          -->
+          <form action="{{url_for('state')}}" method="post">
+            <input type="hidden" name="original_incident" value="{{original_incident}}">
+            <input type="hidden" name="original_resolution" value="{{incident['Resolution']}}">
+            <input type="hidden" name="incident_number" value="{{incident_number}}">
+            <input type="hidden" name="original_ShortDescription" value ="{{original_ShortDescription}}">
+            <button class="link-btn" type="submit" style="font-weight:500;color:blue;text-decoration: underline;">
+              <b>Click here to update the incident details</b>
+            </button>
+          </form>
+        </div>
+
+        <div class="col-12 col-md-5 mt-4 mt-md-0">
+          <p>We love your feedback. Was this resolution helpful?</p>
+          <button id="likebutton" class="btn btn-success me-2" onclick="likeIncident('{{ incident['Number'] }}')">
+            Like <span id="like-{{incident['Number']}}">{{incident['like']}}</span>
+          </button>
+          <button id="dislikebutton" class="btn btn-danger" onclick="dislikeIncident('{{ incident['Number']}}')">
+            Dislike <span id="dislike-{{incident['Number']}}">{{incident['dislike']}}</span>
+          </button>
+        </div>
+
+        <!-- New working code of like and dislikes using Ajax.. START -->
+        <div class="col-12 mt-4">
+          <p id="feedbacklike_count">
+            like : {{incident['Likes']}}
+          </p>
+          <p id="feedbackdislike_count">
+            dislike : {{incident['Dislikes']}} <br/>
+          </p>
+          <button id="feedback_like" class="btn btn-outline-success me-2">Like</button>
+          <button id="feedback_dislike" class="btn btn-outline-danger">Dis-Like</button>
+        </div>
+        <!-- New working code of like and dislikes using Ajax.. END -->
+      </div>
+    </div>
+</body>
+
+<script src ="{{ url_for('static',filename='node_modules2/jquery/dist/jquery.min.js') }}"></script>
+<script src ="{{ url_for('static',filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+<script src ="{{ url_for('static',filename='node_modules2/datatables.net/js/dataTables.min.js') }}"></script>
+<script src ="{{ url_for('static',filename='node_modules2/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+
+<script>
+    $(document).ready(function(){
+        var like = parseInt('{{ incident['like']}}');
+        var dislike = parseInt('{{ incident['dislike']}}');
+
+        if(like > 0 || dislike > 0){
+          disablebutton();
+        }
+    });
+
+    function likeIncident(incidentNumber){
+      fetch("/like/" + incidentNumber, {method:"POST"})
+        .then(response => response.json())
+        .then(data => {
+          if(data.success){
+            $("#like-" + incidentNumber).text(data.likes);
+            if(data.likes > 0){
+              disablebutton()
+            }
+          }
+        })
+        .catch(error => console.error("Error:",error));
+    }
+    
+    function dislikeIncident(incidentNumber){
+      fetch("/dislike/" + incidentNumber, {method:"POST"})
+        .then(response => response.json())
+        .then(data => {
+          if(data.success){
+            $("#dislike-" + incidentNumber).text(data.dislikes);
+            if(data.dislikes > 0){
+              disablebutton()
+            }
+          }
+        })
+        .catch(error => console.error("Error:",error));
+    }
+
+    function disablebutton() {
+      $("#likebutton, #dislikebutton").prop("disabled", true).addClass("disabled btn-primary");
+    }
+</script>
+  
+<script>
+  $(document).ready(function() {
+      checkKeyword_AutoRestart();
+      checkKeyword_ForceComplete();
+      user_session();
+      
+      const autorestart_emailsubject = $('#auto_restart_emailsubject').text().trim();
+      const autorestart_emailmessage = $('.auto_restart_emailmessage').text().trim();
+      const forcecomplete_emailsubject = $('#force_complete_emailsubject').text().trim();
+      const forcecomplete_emailmessage  = $('.force_complete_emailmessage').text().trim();
+            
+      $('#autorestart_emailsubject').val(autorestart_emailsubject);
+      $('#autorestart_emailmessage').val(autorestart_emailmessage);
+      $('#forcecomplete_emailsubject').val(forcecomplete_emailsubject);
+      $('#forcecomplete_emailmessage').val(forcecomplete_emailmessage);    
+  });
+
+  function checkKeyword_AutoRestart(){
+    const keyswords = ["restarted"];
+    const sentence = document.getElementById("mySentence").textContent.toLowerCase();
+    const auto_restart_button = document.getElementById("auto_restart_sendBtn");
+
+    const found = keyswords.some(keyword => sentence.includes(keyword));
+    auto_restart_button.style.display = found ? "block" : "none";
+  }
+
+  function checkKeyword_ForceComplete(){
+    const keywords_forcecomplete = ["force complet"];
+    const sentence_forcecomplete = document.getElementById("mySentence_forcecomplete").textContent.toLowerCase();
+    const button_forcecomplete = document.getElementById("force_complete_sendBtn");
+
+    const found_forcecomplete = keywords_forcecomplete.some(keyword_forcecomplete => sentence_forcecomplete.includes(keyword_forcecomplete));
+    button_forcecomplete.style.display = found_forcecomplete ? "block" : "none";
+  }
+
+  function send_AutoRestart_email() {
+    const autorestart_emailsubject = document.getElementById("autorestart_emailsubject").value;
+    const autorestart_emailmessage = document.getElementById("autorestart_emailmessage").value;
+
+    const confirmsend = confirm("Are you sure this will send an email to NOC email?");
+    if(!confirmsend) {
+      return;
+    }
+
+    fetch('{{ url_for("send_email_autorestart") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type':'application/json'
+      },
+      body: JSON.stringify({autorestart_emailsubject, autorestart_emailmessage})
+    })
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('responseMsg').innerText = data.message;
+      document.getElementById('responseMsg').style.color = "green";
+      document.getElementById('responseMsg').style.display = "block";
+
+      setTimeout(() => {
+        document.getElementById('responseMsg').style.display = "none";
+      },3000);
+    })
+    .catch(error => {
+      document.getElementById('responseMsg').innerText = 'Error sending email';
+      document.getElementById('responseMsg').style.color = "red";
+      document.getElementById('responseMsg').style.display = "block";
+
+      setTimeout(() => {
+        document.getElementById('responseMsg').style.display = "none";
+      },3000);
+    });
+  }
+  document.getElementById('auto_restart_sendBtn').onclick = send_AutoRestart_email;
+
+  function send_ForceComplete_email() {
+    const forcecomplete_emailsubject = document.getElementById("forcecomplete_emailsubject").value;
+    const forcecomplete_emailmessage = document.getElementById("forcecomplete_emailmessage").value;
+
+    const confirmsend = confirm("Are you sure this will send an email to NOC email?");
+    if(!confirmsend) {
+      return;
+    }
+
+    fetch('{{ url_for("send_email_forcecomplete") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type':'application/json'
+      },
+      body: JSON.stringify({forcecomplete_emailsubject, forcecomplete_emailmessage})
+    })
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('responseMsg_forcecomplete').innerText = data.message;
+      document.getElementById('responseMsg_forcecomplete').style.color = "green";
+      document.getElementById('responseMsg_forcecomplete').style.display = "block";
+
+      setTimeout(() => {
+        document.getElementById('responseMsg_forcecomplete').style.display = "none";
+      },3000);
+    })
+    .catch(error => {
+      document.getElementById('responseMsg_forcecomplete').innerText = 'Error sending email';
+      document.getElementById('responseMsg_forcecomplete').style.color = "red";
+      document.getElementById('responseMsg_forcecomplete').style.display = "block";
+
+      setTimeout(() => {
+        document.getElementById('responseMsg_forcecomplete').style.display = "none";
+      },3000);
+    });
+  }
+  document.getElementById('force_complete_sendBtn').onclick = send_ForceComplete_email;
+  
+  function inc_like() {
+    const similarincident_number = $("#similarincident_number").text();
+    const racf = $("#racf").text();
+    fetch('{{ url_for("incident_likecount") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type':'application/json'
+      },
+      body: JSON.stringify({similarincident_number, racf})
+    })
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('feedbacklike_count').innerText = "like : " + data.status;
+      user_session(); 
+    });
+  }
+  document.getElementById('feedback_like').onclick = inc_like;
+
+  function inc_dislike() {
+    const similarincident_number = $("#similarincident_number").text();
+    const racf = $("#racf").text();
+    fetch('{{ url_for("incident_dislikecount") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type':'application/json'
+      },
+      body: JSON.stringify({similarincident_number, racf})
+    })
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('feedbackdislike_count').innerText = "dislike : " + data.status;
+      user_session();
+    });
+  }
+  document.getElementById('feedback_dislike').onclick = inc_dislike;
+
+  function user_session() {
+    const racf = $("#racf").text();
+    const similarincident_number = $("#similarincident_number").text();
+    console.log(racf);
+    console.log(similarincident_number);
+    fetch('{{ url_for("user_session") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type':'application/json'
+      },
+      body: JSON.stringify({racf, similarincident_number})
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data.status);
+      if(data.status > 0) {
+        document.getElementById('feedback_like').disabled = true;
+        document.getElementById('feedback_dislike').disabled = true;
+      }
+    });
+  }
+</script>
+<!-- :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1} -->
+<html>
+  <head>
+    <title>IRR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='node_modules2/bootstrap/dist/css/bootstrap.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='node_modules2/datatables.net-bs5/css/dataTables.bootstrap5.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='image/KeyBank_icon.svg') }}"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='styles/style.css') }}"
+    />
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <a class="navbar-brand" href="#"
+          ><h2 style="color: white">IRR</h2></a
+        >
+        <a class="navbar-brand" href="#" style="color: white">DAG</a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+       <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+                <p style="margin-top: 10px;color:white"><span id="racf">{{user}} </span>&nbsp;&nbsp;&nbsp;</p>
+            </li>
+            <li class="nav-item">
+              <img src="{{ url_for('static', filename='image/logo.png') }}" class="image" />
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container my-4">
+      <div class="row">
+        <div class="col-4 col-xxl-4 col-xl-4 col-lg-4 col-md-4 col-sm-4">
+          <form id="incForm" action="{{url_for('show_related_incidents')}}" method="post">
+            <input type="hidden" name="incident_number" value="{{original_incident}}">
+            <button class="link-btn" type="submit">
+              <i class="fa fa-arrow-left fa-2x" style="color:rgb(204, 0, 0)" aria-hidden="true"></i>
+              <span style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;">Back</span>
+            </button>
+          </form>
+        </div>
+        <div class="col-4 col-xxl-4 col-xl-4 col-lg-4 col-md-4 col-sm-4"></div>
+        <div class="col-4 col-xxl-4 col-xl-4 col-lg-4 col-md-4 col-sm-4 text-end">
+          <a href="{{url_for('home')}}">
+            <i class="fa fa-home fa-2x" style="color:rgb(204, 0, 0)" aria-hidden="true"></i>
+            <span style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;">Home</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="row mt-5">
+        <div class="col-12">
+          <p class="heading">
+            <b>Recommended Resolution for</b>
+            <span style="color:#b30000; font-weight: 400;">{{original_incident}}</span>
+          </p>
+          <p class="heading1">
+            <b>Similar Incident Number: </b>
+            <span id="similarincident_number" style="color:#b30000; font-weight: 300;">{{ incident['Number'] }}</span>
+          </p>
+          <p class="heading1">
+            <b>Description: </b>
+            <span style="color:black; font-weight: 300;">{{ incident['Title'] }}</span>
+          </p>
+          <p class="heading1" style="display: none;">
+            <b>Cause Code: </b>
+            <span style="color:black; font-weight: 300;">{{ incident['Cause code'] }}</span>
+          </p>
+          <p class="heading1">
+            <b>Resolution: </b>
+            <span style="color:black; font-weight: 300;">{{ incident['Resolution'] }}</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="row mt-5">
+        <div class="col-12">   
+          <p style="display:none;" id="force_complete_emailsubject" class="d-none">
+            DAG: {{original_incident}} - Force complete the Job
+          </p>
+          <p style="display:none;" class="force_complete_emailmessage">
+             Hi Team, 
+             Please force complete the below job.<br/>
+             Incident Number: {{original_incident}} <br/>
+             Short Description: {{original_ShortDescription}} <br/><br/>
+             {{ incident['Resolution'] }} <br/>
+             <br/>Kindly acknowledge and inform us once job has been marked as completed.
+          </p>
+          <p style="display:none;" class="force_complete_emailmessage">
+            Thank You!
+            <span style="text-align: left;">IRR Team</span>
+          </p>
+
+          <p style="display:none;" id="auto_restart_emailsubject" class="d-none">
+            DAG: {{original_incident}} - Restart the Job
+          </p>
+          <p style="display:none;" class="auto_restart_emailmessage">
+             Hi Team, 
+             Please restart the below job from top.<br/>
+             Incident Number: {{original_incident}} <br/>
+             Short Description: {{original_ShortDescription}} <br/><br/>
+             {{ incident['Resolution'] }} <br/>
+             <br/>Kindly acknowledge and inform us once job has been restarted.
+          </p>
+          <p style="display:none;" class="auto_restart_emailmessage">
+            Thank You!
+            <span style="text-align: left;">IRR Team</span>
+          </p>
+
+          <input type="hidden" name="subject" id="autorestart_emailsubject">
+          <input type="hidden" name="body" id="autorestart_emailmessage">
+          <button class="btn btn-primary" id="auto_restart_sendBtn">Auto Restart</button>
+          <p id="responseMsg"></p>
+          <p style="display:none;" id="mySentence">{{ incident['Resolution'] }}</p>
+
+          <input type="hidden" name="subject1" id="forcecomplete_emailsubject">
+          <input type="hidden" name="body1" id="forcecomplete_emailmessage">
+          <button class="btn btn-primary" id="force_complete_sendBtn" style="display: none;">Force complete</button>
+          <p id="responseMsg_forcecomplete"></p>
+          <p style="display:none;" id="mySentence_forcecomplete">{{ incident['Resolution'] }}</p>
+        </div>
+      </div>
+
+      <div class="row mt-5">
+        <div class="col-12 col-md-7">
+          <!-- 
+            original_incident, incident['Resolution'] are used in DQ to close the incident
+            incident_number, original_ShortDescription are used for back button in resolution page
+          -->
+          <form action="{{url_for('state')}}" method="post">
+            <input type="hidden" name="original_incident" value="{{original_incident}}">
+            <input type="hidden" name="original_resolution" value="{{incident['Resolution']}}">
+            <input type="hidden" name="incident_number" value="{{incident_number}}">
+            <input type="hidden" name="original_ShortDescription" value ="{{original_ShortDescription}}">
+            <button class="link-btn" type="submit" style="font-weight:500;color:blue;text-decoration: underline;">
+              <b>Click here to update the incident details</b>
+            </button>
+          </form>
+        </div>
+
+        <!-- NEW unified feedback section -->
+        <div class="col-12 col-md-5 mt-4 mt-md-0">
+          <p>We love your feedback. Was this resolution helpful?</p>
+          <div class="btn-group" role="group" aria-label="Resolution feedback">
+            <button id="feedback_like" class="btn btn-success me-2">
+              <i class="fa fa-thumbs-up me-1"></i>
+              <span>Like</span>
+              <span
+                id="feedback_like_count_badge"
+                class="badge bg-light text-success ms-2"
+              >
+                {{ incident['Likes'] }}
+              </span>
+            </button>
+            <button id="feedback_dislike" class="btn btn-danger me-2">
+              <i class="fa fa-thumbs-down me-1"></i>
+              <span>Dislike</span>
+              <span
+                id="feedback_dislike_count_badge"
+                class="badge bg-light text-danger ms-2"
+              >
+                {{ incident['Dislikes'] }}
+              </span>
+            </button>
+            <button
+              id="feedback_cancel"
+              class="btn btn-secondary d-none"
+              type="button"
+            >
+              <i class="fa fa-times me-1"></i>
+              <span>Cancel my feedback</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+</body>
+
+<script src ="{{ url_for('static',filename='node_modules2/jquery/dist/jquery.min.js') }}"></script>
+<script src ="{{ url_for('static',filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+<script src ="{{ url_for('static',filename='node_modules2/datatables.net/js/dataTables.min.js') }}"></script>
+<script src ="{{ url_for('static',filename='node_modules2/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+
+<script>
+  $(document).ready(function() {
+      // Initialize email-related content
+      checkKeyword_AutoRestart();
+      checkKeyword_ForceComplete();
+      initEmailHiddenFields();
+
+      // Initialize feedback UI state from backend
+      initFeedbackState();
+
+      // Wire up feedback button handlers
+      document.getElementById('feedback_like').onclick = handleLikeClick;
+      document.getElementById('feedback_dislike').onclick = handleDislikeClick;
+      document.getElementById('feedback_cancel').onclick = handleCancelClick;
+  });
+
+  function initEmailHiddenFields() {
+      const autorestart_emailsubject = $('#auto_restart_emailsubject').text().trim();
+      const autorestart_emailmessage = $('.auto_restart_emailmessage').text().trim();
+      const forcecomplete_emailsubject = $('#force_complete_emailsubject').text().trim();
+      const forcecomplete_emailmessage  = $('.force_complete_emailmessage').text().trim();
+
+      $('#autorestart_emailsubject').val(autorestart_emailsubject);
+      $('#autorestart_emailmessage').val(autorestart_emailmessage);
+      $('#forcecomplete_emailsubject').val(forcecomplete_emailsubject);
+      $('#forcecomplete_emailmessage').val(forcecomplete_emailmessage);
+  }
+
+  function checkKeyword_AutoRestart(){
+    const keyswords = ["restarted"];
+    const sentence = document.getElementById("mySentence").textContent.toLowerCase();
+    const auto_restart_button = document.getElementById("auto_restart_sendBtn");
+
+    const found = keyswords.some(keyword => sentence.includes(keyword));
+    auto_restart_button.style.display = found ? "block" : "none";
+  }
+
+  function checkKeyword_ForceComplete(){
+    const keywords_forcecomplete = ["force complet"];
+    const sentence_forcecomplete = document.getElementById("mySentence_forcecomplete").textContent.toLowerCase();
+    const button_forcecomplete = document.getElementById("force_complete_sendBtn");
+
+    const found_forcecomplete = keywords_forcecomplete.some(keyword_forcecomplete => sentence_forcecomplete.includes(keyword_forcecomplete));
+    button_forcecomplete.style.display = found_forcecomplete ? "block" : "none";
+  }
+
+  function send_AutoRestart_email() {
+    const autorestart_emailsubject = document.getElementById("autorestart_emailsubject").value;
+    const autorestart_emailmessage = document.getElementById("autorestart_emailmessage").value;
+
+    const confirmsend = confirm("Are you sure this will send an email to NOC email?");
+    if(!confirmsend) {
+      return;
+    }
+
+    fetch('{{ url_for("send_email_autorestart") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type':'application/json'
+      },
+      body: JSON.stringify({autorestart_emailsubject, autorestart_emailmessage})
+    })
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('responseMsg').innerText = data.message;
+      document.getElementById('responseMsg').style.color = "green";
+      document.getElementById('responseMsg').style.display = "block";
+
+      setTimeout(() => {
+        document.getElementById('responseMsg').style.display = "none";
+      },3000);
+    })
+    .catch(error => {
+      document.getElementById('responseMsg').innerText = 'Error sending email';
+      document.getElementById('responseMsg').style.color = "red";
+      document.getElementById('responseMsg').style.display = "block";
+
+      setTimeout(() => {
+        document.getElementById('responseMsg').style.display = "none";
+      },3000);
+    });
+  }
+  document.getElementById('auto_restart_sendBtn').onclick = send_AutoRestart_email;
+
+  function send_ForceComplete_email() {
+    const forcecomplete_emailsubject = document.getElementById("forcecomplete_emailsubject").value;
+    const forcecomplete_emailmessage = document.getElementById("forcecomplete_emailmessage").value;
+
+    const confirmsend = confirm("Are you sure this will send an email to NOC email?");
+    if(!confirmsend) {
+      return;
+    }
+
+    fetch('{{ url_for("send_email_forcecomplete") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type':'application/json'
+      },
+      body: JSON.stringify({forcecomplete_emailsubject, forcecomplete_emailmessage})
+    })
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('responseMsg_forcecomplete').innerText = data.message;
+      document.getElementById('responseMsg_forcecomplete').style.color = "green";
+      document.getElementById('responseMsg_forcecomplete').style.display = "block";
+
+      setTimeout(() => {
+        document.getElementById('responseMsg_forcecomplete').style.display = "none";
+      },3000);
+    })
+    .catch(error => {
+      document.getElementById('responseMsg_forcecomplete').innerText = 'Error sending email';
+      document.getElementById('responseMsg_forcecomplete').style.color = "red";
+      document.getElementById('responseMsg_forcecomplete').style.display = "block";
+
+      setTimeout(() => {
+        document.getElementById('responseMsg_forcecomplete').style.display = "none";
+      },3000);
+    });
+  }
+  document.getElementById('force_complete_sendBtn').onclick = send_ForceComplete_email;
+
+  // --- Feedback (like / dislike / cancel) ---
+
+  function initFeedbackState() {
+    const racf = $("#racf").text().trim();
+    const similarincident_number = $("#similarincident_number").text().trim();
+
+    if (!racf || !similarincident_number) {
+      return;
+    }
+
+    fetch('{{ url_for("feedback_status") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ racf, similarincident_number })
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          updateFeedbackUI(data);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching feedback status:', error);
+      });
+  }
+
+  function handleLikeClick() {
+    sendFeedbackAction('{{ url_for("feedback_like") }}');
+  }
+
+  function handleDislikeClick() {
+    sendFeedbackAction('{{ url_for("feedback_dislike") }}');
+  }
+
+  function handleCancelClick() {
+    sendFeedbackAction('{{ url_for("feedback_cancel") }}');
+  }
+
+  function sendFeedbackAction(url) {
+    const racf = $("#racf").text().trim();
+    const similarincident_number = $("#similarincident_number").text().trim();
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ racf, similarincident_number })
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          updateFeedbackUI(data);
+        }
+      })
+      .catch(error => {
+        console.error('Error updating feedback:', error);
+      });
+  }
+
+  function updateFeedbackUI(data) {
+    // Update counts inside the buttons
+    $('#feedback_like_count_badge').text(data.likes);
+    $('#feedback_dislike_count_badge').text(data.dislikes);
+
+    // Reset button states
+    $('#feedback_like').prop('disabled', false).removeClass('active');
+    $('#feedback_dislike').prop('disabled', false).removeClass('active');
+
+    // Handle current user feedback state
+    if (data.user_feedback === 'like') {
+      $('#feedback_like').prop('disabled', true).addClass('active');
+      $('#feedback_dislike').prop('disabled', true);
+      $('#feedback_cancel').removeClass('d-none');
+    } else if (data.user_feedback === 'dislike') {
+      $('#feedback_dislike').prop('disabled', true).addClass('active');
+      $('#feedback_like').prop('disabled', true);
+      $('#feedback_cancel').removeClass('d-none');
+    } else {
+      // No feedback yet
+      $('#feedback_cancel').addClass('d-none');
+    }
+  }
+</script>
+<!-- :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1} -->

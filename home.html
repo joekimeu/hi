@@ -1,0 +1,187 @@
+{% extends "layout.html" %}
+{% block content %}
+  <!-- Page header + actions -->
+  <header class="container-xxl py-4">
+    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+      <div>
+        <h1 class="h4 mb-1">Open Incidents</h1>
+        <p class="text-secondary mb-0">Live list of current DAG incidents pulled from ServiceNow.</p>
+      </div>
+
+      <!-- Actions: New search/filter toolbar -->
+      <div class="toolbar card border-0 shadow-sm p-2">
+        <div class="row g-2 align-items-center">
+          <div class="col-12 col-md">
+            <div class="input-group">
+              <span class="input-group-text bg-transparent border-0 ps-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.85-3.85zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                </svg>
+              </span>
+              <input id="globalSearch" type="search" class="form-control border-0" placeholder="Search incidents (number, description, host, etc.)" />
+            </div>
+          </div>
+          <div class="col-6 col-md-auto">
+            <select id="priorityFilter" class="form-select form-select-sm">
+              <option value="">Priority: All</option>
+              <option value="1">P1</option>
+              <option value="2">P2</option>
+              <option value="3">P3</option>
+              <option value="4">P4</option>
+              <option value="5">P5</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-auto">
+            <select id="stateFilter" class="form-select form-select-sm">
+              <option value="">State: All</option>
+              <option value="1">New</option>
+              <option value="5">Assigned</option>
+              <option value="2">Work in Progress</option>
+              <option value="-5">Pending</option>
+              <option value="7">Resolved</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Table card -->
+  <main class="container-xxl pb-5">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table id="incidentsTable" class="table table-hover align-middle mb-0">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th style="width: 56px">#</th>
+                <th>Number</th>
+                <th>Short description</th>
+                <th style="width: 140px">Priority</th>
+                <th style="width: 80px">TLA</th>
+                <th style="width: 160px">State</th>
+                <th style="width: 130px">Dependency</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for incident in open_incidents %}
+              <tr>
+                <td class="text-muted">{{ loop.index }}</td>
+                <td>
+                  <form action="{{ url_for('show_related_incidents') }}" method="post" class="m-0 p-0 d-inline">
+                    <input type="hidden" name="incident_number" value="{{ incident.number }}" />
+                    <button type="submit" class="btn btn-link p-0 align-baseline fw-semibold text-decoration-none link-like">
+                      {{ incident.number }}
+                    </button>
+                  </form>
+                </td>
+                <td class="description-cell">
+                  {{ incident.short_description }}
+                </td>
+                <td>
+                  <span class="badge rounded-pill priority-pill p-2" data-priority="{{ incident.priority }}">
+                    {% if incident.priority == '1' %}
+                      0 - Critical
+                    {% elif incident.priority == '2' %}
+                      1 - Critical
+                    {% elif incident.priority == '3' %}
+                      2 - High
+                    {% elif incident.priority == '4' %}
+                      3 - Medium
+                    {% else %}
+                      4 - Standard
+                    {% endif %}
+                  </span>
+                </td>
+                <td><span class="badge text-bg-secondary">DAG</span></td>
+                <td>
+                  {% if incident.state == '1' %}
+                    <span class="state-pill state-new">New</span>
+                  {% elif incident.state == '5' %}
+                    <span class="state-pill state-assigned">Assigned</span>
+                  {% elif incident.state == '2' %}
+                    <span class="state-pill state-wip">Work in Progress</span>
+                  {% elif incident.state == '-5' %}
+                    <span class="state-pill state-pending">Pending</span>
+                  {% else %}
+                    <span class="state-pill state-resolved">Resolved</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if 'abend' in incident.short_description %}
+                    <form action="{{ url_for('IADD') }}" method="post" class="m-0 p-0 d-inline">
+                      <input type="hidden" name="incident_shortdescription" value="{{ incident.short_description }}"/>
+                      <button type="submit" class="btn btn-sm btn-outline-success">
+                        View Dependency
+                      </button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts: use Flask static paths (as in the improved mechanics version) -->
+  <script src="{{ url_for('static', filename='node_modules2/jquery/dist/jquery.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='node_modules2/datatables.net/js/dataTables.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='node_modules2/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+
+  <script>
+    $(document).ready(function () {
+      // Initialize DataTable with modern options
+      const dt = $('#incidentsTable').DataTable({
+        paging: true,
+        pageLength: 10,
+        order: [[1, 'desc']],
+        // hide the built-in search box since we use our own toolbar
+        dom: 't<"row pt-3"<"col-sm-12 col-md-5"l><"col-sm-12 col-md-7"p>>',
+        columnDefs: [
+          { targets: [0, 1, 2, 3, 4, 5, 6], searchable: true }
+        ]
+      });
+
+      // Global search
+      const searchInput = document.getElementById('globalSearch');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          dt.search(e.target.value).draw();
+        });
+      }
+
+      // Priority filter
+      const priorityFilter = document.getElementById('priorityFilter');
+      if (priorityFilter) {
+        priorityFilter.addEventListener('change', function () {
+          const val = this.value;
+          if (!val) { dt.column(3).search('').draw(); return; }
+          // Column 3 shows "0 - Critical", "1 - Critical", etc.
+          dt.column(3).search('^' + val + ' - ', true, false).draw();
+        });
+      }
+
+      // State filter
+      const stateFilter = document.getElementById('stateFilter');
+      if (stateFilter) {
+        stateFilter.addEventListener('change', function () {
+          const val = this.value;
+          if (!val) { dt.column(5).search('').draw(); return; }
+          const map = {
+            '1': 'New',
+            '5': 'Assigned',
+            '2': 'Work in Progress',
+            '-5': 'Pending',
+            '7': 'Resolved'
+          };
+          const label = map[val] || '';
+          dt.column(5).search(label ? '^' + label + '$' : '', true, false).draw();
+        });
+      }
+    });
+  </script>
+{% endblock %}
