@@ -1,0 +1,136 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<main class="container-xxl py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-5">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+
+          <!-- Page title -->
+          <header class="mb-4">
+            <h1 class="h4 mb-1">Sign in</h1>
+            <p class="text-secondary mb-0">
+              Access the Intelligent Resolution Recommender (IRR) — DAG.
+            </p>
+          </header>
+
+          <!-- Optional error/message block -->
+          {% if error %}
+            <div class="alert alert-danger small" role="alert">
+              {{ error }}
+            </div>
+          {% endif %}
+          {% if message %}
+            <div class="alert alert-info small" role="alert">
+              {{ message }}
+            </div>
+          {% endif %}
+
+          <!-- Sign-in form -->
+          <form action="{{ url_for('login') }}" method="post" novalidate>
+            <input type="hidden" name="next" value="{{ next or '' }}"/>
+
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <input
+                type="text"
+                class="form-control"
+                id="username"
+                name="username"
+                autocomplete="username"
+                required
+                value="{{ request.form.username or '' }}"
+              >
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <div class="input-group">
+                <input
+                  type="password"
+                  class="form-control"
+                  id="password"
+                  name="password"
+                  autocomplete="current-password"
+                  required
+                >
+                <button
+                  class="btn btn-outline-secondary"
+                  type="button"
+                  id="togglePassword"
+                  aria-label="Show or hide password"
+                >
+                  <i class="fa fa-eye-slash" id="togglePasswordIcon"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  value="1"
+                  id="remember"
+                  name="remember"
+                  {% if request.form.remember %}checked{% endif %}
+                >
+                <label class="form-check-label" for="remember">
+                  Remember me
+                </label>
+              </div>
+
+              <a href="{{ url_for('forgot_password') if 'forgot_password' in current_app.view_functions else '#' }}"
+                 class="small text-decoration-none">
+                Forgot password?
+              </a>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-3">
+              Sign in
+            </button>
+          </form>
+
+          <!-- CONNECT SERVICE NOW BUTTON (IDEAL SECONDARY ACTION) -->
+          <div class="text-center mb-4">
+            <form action="{{ url_for('connect_servicenow') }}" method="post">
+              <button type="submit" class="btn btn-outline-primary w-100">
+                <i class="fa fa-plug me-2"></i>
+                Connect your KeyBank ServiceNow account?
+              </button>
+            </form>
+          </div>
+
+          <hr class="my-4">
+
+          <p class="small text-center text-secondary mb-0">
+            Need help signing in or connecting ServiceNow? Contact the DAG support team.
+          </p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Password toggle script -->
+<script>
+  (function () {
+    const toggleBtn = document.getElementById('togglePassword');
+    if (!toggleBtn) return;
+
+    const pwdInput = document.getElementById('password');
+    const icon = document.getElementById('togglePasswordIcon');
+
+    toggleBtn.addEventListener('click', function () {
+      if (!pwdInput) return;
+      const isPassword = pwdInput.type === 'password';
+      pwdInput.type = isPassword ? 'text' : 'password';
+
+      icon.classList.toggle('fa-eye', isPassword);
+      icon.classList.toggle('fa-eye-slash', !isPassword);
+    });
+  })();
+</script>
+{% endblock %}
