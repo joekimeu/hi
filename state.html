@@ -3,6 +3,7 @@
 <br/>
 <div class="container">
   <div class="row">
+
     <div class="col-10 col-xxl-10 col-xl-10 col-lg-10 col-md-10 col-sm-10">
       {% if original_resolution =="NA" %}
       <form action="{{url_for('show_related_incidents')}}" method="post">
@@ -40,75 +41,92 @@
       <textarea style="display:none;" id="original_resolution" class="form-control" rows="3">{{original_resolution}}</textarea>
       <textarea style="display:none;" id="original_causecode" class="form-control" rows="3">{{original_causecode}}</textarea>
 
-      <!-- Unified form -->
+      <!-- State -->
       <label for="state"><b>State<span style="color:red">*</span></b></label>
       <select id="state" class="form-control">
-        <option value="">---Select State---</option>
+        <option value="resolved">Resolved</option>
+        <option value="pending">Pending</option>
       </select>
 
-      <label for="sub_state"><b>Sub State <span style="color:red">*</span></b></label>
-      <select id="sub_state" class="form-control">
+      <!-- Sub State -->
+      <label for="sub_tate"><b>Sub State <span style="color:red">*</span></b></label>
+      <!-- Keep id="sub_tate" because your backend payload expects sub_tate -->
+      <select id="sub_tate" class="form-control">
         <option value="">---Select Sub State---</option>
       </select>
 
-      <!-- conditional inputs -->
-      <div id="Pending_Problem" class="mt-2" style="display:none;">
+      <!-- Conditional inputs (shown only for certain substates) -->
+      <div id="Pending_Problem" style="display:none;" class="mt-2">
         <label for="PendingProblem"><b>Problem No. <span style="color:red">*</span></b></label>
         <textarea id="PendingProblem" class="form-control" rows="1"></textarea>
       </div>
 
-      <div id="Pending_Change" class="mt-2" style="display:none;">
+      <div id="Pending_Change" style="display:none;" class="mt-2">
         <label for="PendingChange"><b>Change No. <span style="color:red">*</span></b></label>
         <textarea id="PendingChange" class="form-control" rows="1"></textarea>
       </div>
 
-      <div id="Duplicate" class="mt-2" style="display:none;">
+      <div id="Duplicate" style="display:none;" class="mt-2">
         <label for="duplicate"><b>Parent Incident <span style="color:red">*</span></b></label>
         <textarea id="duplicate" class="form-control" rows="1"></textarea>
       </div>
 
-      <label for="cause_code"><b>Cause Code <span style="color:red">*</span></b> <span id="causecode_hint" style="display:none;"></span></label>
-      <select id="cause_code" class="form-control">
-        <option value="">---Select Cause Code---</option>
-      </select>
+      <!-- Resolved-only fields wrapper -->
+      <div id="resolvedFields">
 
-      <label for="category"><b>Category <span style="color:red">*</span></b> <span id="category_hint" style="display:none;"></span></label>
-      <select id="category" class="form-control">
-        <option value="">---Select Category---</option>
-      </select>
+        <label for="cause_code">
+          <b>Cause Code <span style="color:red">*</span></b>
+          <span id="causecode_hint" style="display:none;"></span>
+        </label>
+        <select id="cause_code" class="form-control">
+          <option value="">---Select Cause Code---</option>
+        </select>
 
-      <label for="sub_category"><b>Sub Category <span style="color:red">*</span></b> <span id="subcategory_hint" style="display:none;"></span></label>
-      <select id="sub_category" class="form-control">
-        <option value="">---Select Sub Category---</option>
-      </select>
+        <label for="category">
+          <b>Category <span style="color:red">*</span></b>
+          <span id="category_hint" style="display:none;"></span>
+        </label>
+        <select id="category" class="form-control">
+          <option value="">---Select Category---</option>
+        </select>
 
+        <label for="sub_category">
+          <b>Sub Category <span style="color:red">*</span></b>
+          <span id="subcategory_hint" style="display:none;"></span>
+        </label>
+        <select id="sub_category" class="form-control">
+          <option value="">---Select Sub Category---</option>
+        </select>
+
+        <label for="details">
+          <b>Detailed RCA</b> <span style="color:red">*</span>
+          <span style="display:none;" class="score-indicator">Score: <span id="details-label-score">0</span></span>
+        </label>
+        <textarea id="details" class="form-control" rows="3"></textarea>
+        <div id="detailsFeedback" class="feedback"></div>
+
+        <label for="action_taken">
+          <b>Action Taken</b> <span style="color:red">*</span>
+          <span style="display:none;" class="score-indicator">Score: <span id="action-label-score">0</span></span>
+        </label>
+        <textarea id="action_taken" class="form-control" rows="3"></textarea>
+        <div id="actionFeedback" class="feedback"></div>
+
+        <label for="resolution_type"><b>Resolution Type <span style="color:red">*</span></b></label>
+        <select id="resolution_type" class="form-control">
+          <option value="">---Select Resolution Type---</option>
+        </select>
+
+      </div>
+
+      <!-- Work Notes (available to BOTH states) -->
       <label for="work_notes"><b>Work Notes</b></label>
       <textarea id="work_notes" class="form-control" rows="3"></textarea>
 
-      <label for="details">
-        <b>Detailed RCA</b> <span style="color:red">*</span>
-        <span style="display:none;" class="score-indicator">Score: <span id="details-label-score">0</span></span>
-      </label>
-      <textarea id="details" class="form-control" rows="3"></textarea>
-      <div id="detailsFeedback" class="feedback"></div>
-
-      <label for="action_taken">
-        <b>Action Taken</b> <span style="color:red">*</span>
-        <span style="display:none;" class="score-indicator">Score: <span id="action-label-score">0</span></span>
-      </label>
-      <textarea id="action_taken" class="form-control" rows="3"></textarea>
-      <div id="actionFeedback" class="feedback"></div>
-
-      <label for="resolution_type"><b>Resolution Type <span style="color:red">*</span></b></label>
-      <select id="resolution_type" class="form-control">
-        <option value="">---Select Resolution Type---</option>
-      </select>
-
-      <!-- changed: explicit type="button" so it never submits anything -->
-      <button id="submitBtn" type="button" class="btn btn-primary mt-3">Submit</button>
+      <button id="submitBtn" class="btn btn-primary mt-3">Submit</button>
       <div id="errorMsg" class="text-danger mt-2" style="display:none;"></div>
 
-      <button id="resetBtn" type="button" class="btn btn-danger mt-3">Reset</button>
+      <button id="resetBtn" class="btn btn-danger mt-3">Reset</button>
 
       <!-- ONE modal -->
       <div class="modal fade" id="myModal">
@@ -144,20 +162,23 @@
                   <input type="text" id="modalDuplicate" class="form-control" readonly>
                 </div>
 
-                <label>Cause Code</label>
-                <input type="text" id="modalCause" class="form-control" readonly>
+                <!-- resolved-only modal fields -->
+                <div id="resolvedModalFields">
+                  <label>Cause Code</label>
+                  <input type="text" id="modalCause" class="form-control" readonly>
 
+                  <label>Closure Note</label>
+                  <textarea id="modalText" class="form-control" rows="5" readonly></textarea>
+                </div>
+
+                <!-- common -->
                 <label>Work Notes</label>
-                <input type="text" id="modalWork" class="form-control" readonly>
-
-                <label>Closure Note</label>
-                <textarea id="modalText" class="form-control" rows="5" readonly></textarea>
+                <textarea id="modalWork" class="form-control" rows="3" readonly></textarea>
 
                 <input id="original_inc" type="text" value="{{original_incident}}" hidden>
               </div>
 
               <div class="modal-footer">
-                <!-- saveBtn will be disabled/greyed-out on first click -->
                 <button id="saveBtn" class="btn btn-success" type="submit">Submit</button>
                 <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
               </div>
@@ -177,12 +198,10 @@
 <script src="{{ url_for('static',filename='node_modules2/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
 
 <script>
-  // ---------- Centralized dropdown options (edit once) ----------
+  // ----------------------------
+  // Centralized dropdown options
+  // ----------------------------
   const DROPDOWN_OPTIONS = {
-    states: [
-      { value: "resolved", label: "Resolved" },
-      { value: "pending",  label: "Pending"  }
-    ],
     subStates: [
       "Pending User Info",
       "Solved (Work Around)",
@@ -225,31 +244,47 @@
     sel.innerHTML = `<option value="">${placeholderText}</option>`;
     options.forEach(opt => {
       const o = document.createElement("option");
-      if (typeof opt === "string") {
-        o.value = opt;
-        o.textContent = opt;
-      } else {
-        o.value = opt.value;
-        o.textContent = opt.label;
-      }
+      o.value = opt;
+      o.textContent = opt;
       sel.appendChild(o);
     });
   }
 
-  function setResolutionTypeOptions(stateVal) {
-    const options = (DROPDOWN_OPTIONS.resolutionTypes[stateVal] || []);
+  // ----------------------------
+  // Visibility rules (matches screenshots)
+  // ----------------------------
+  function setStateUI(stateVal) {
+    const resolvedFields = document.getElementById("resolvedFields");
+    const resolvedModalFields = document.getElementById("resolvedModalFields");
+
+    if (stateVal === "pending") {
+      // Hide all "resolved-only" inputs for Pending view
+      resolvedFields.style.display = "none";
+      resolvedModalFields.style.display = "none";
+    } else {
+      resolvedFields.style.display = "block";
+      resolvedModalFields.style.display = "block";
+    }
+
+    // Resolution type dropdown should only be meaningful for resolved state,
+    // but we still update it to keep code consistent.
+    const options = DROPDOWN_OPTIONS.resolutionTypes[stateVal] || [];
     fillSelect("resolution_type", "---Select Resolution Type---", options);
   }
 
-  function initDropdowns() {
-    fillSelect("state", "---Select State---", DROPDOWN_OPTIONS.states);
-    fillSelect("sub_state", "---Select Sub State---", DROPDOWN_OPTIONS.subStates);
-    // default
-    document.getElementById("state").value = "resolved";
-    setResolutionTypeOptions("resolved");
+  // ----------------------------
+  // Conditional substate blocks
+  // ----------------------------
+  function updateConditionalBlocks() {
+    const sub = $("#sub_tate").val();
+    $("#Pending_Problem").toggle(sub === "Pending_Problem");
+    $("#Pending_Change").toggle(sub === "Pending_Change");
+    $("#Duplicate").toggle(sub === "Duplicate");
   }
 
-  // ---------- Keep your resolution parsing logic ----------
+  // ----------------------------
+  // Resolution parsing (kept)
+  // ----------------------------
   let detailsScore = 0;
   let actionScore = 0;
   let selectedCategory;
@@ -278,22 +313,33 @@
     selectedCategory = result["category"];
     selectedSubCategory = result["sub_category"];
 
-    // default sub_state + fill fields if present
-    document.getElementById('sub_state').value = "Solved (Permanently)";
-    document.getElementById('details').value = result["rca"] || "";
-    document.getElementById('action_taken').value = result["action taken"] || "";
-    document.getElementById('resolution_type').value = result["resolution type"] || "";
+    // Default substate for resolved
+    document.getElementById('sub_tate').value = "Solved (Permanently)";
 
-    const causecode_hint = document.getElementById('original_causecode').value || "";
-    document.getElementById('causecode_hint').innerHTML = causecode_hint;
+    // Fill if present
+    const detailsEl = document.getElementById('details');
+    const actionEl = document.getElementById('action_taken');
+    const resTypeEl = document.getElementById('resolution_type');
+
+    if (detailsEl) detailsEl.value = result["rca"] || "";
+    if (actionEl) actionEl.value = result["action taken"] || "";
+    if (resTypeEl) resTypeEl.value = result["resolution type"] || "";
+
+    // hints
+    document.getElementById('causecode_hint').innerHTML = selectedCause || "";
     document.getElementById('category_hint').innerHTML = selectedCategory || "";
     document.getElementById('subcategory_hint').innerHTML = selectedSubCategory || "";
   }
 
-  // ---------- Score logic ----------
-  function handleInput(event, field) {
-    calculateScore(event.target.value, field);
-  }
+  // ----------------------------
+  // Score logic (kept)
+  // ----------------------------
+  const detailsScoreElement = document.getElementById('details-label-score');
+  const actionScoreElement = document.getElementById('action-label-score');
+  const detailsFeedback = document.getElementById('detailsFeedback');
+  const actionFeedback = document.getElementById('actionFeedback');
+
+  function handleInput(event, field) { calculateScore(event.target.value, field); }
 
   function calculateScore(text, field) {
     fetch('/calculate-score', {
@@ -306,34 +352,37 @@
     .catch(err => {
       console.error('Error calculating score:', err);
       const feedbackElement = field === 'details' ? detailsFeedback : actionFeedback;
-      feedbackElement.textContent = "Error calculating score. Please try again.";
-      feedbackElement.style.backgroundColor = "#ffebee";
+      if (feedbackElement) {
+        feedbackElement.textContent = "Error calculating score. Please try again.";
+        feedbackElement.style.backgroundColor = "#ffebee";
+      }
     });
   }
 
   function updateFieldScore(field, score) {
-    const scoreElement = field === 'details' ? detailsScoreElement : actionScoreElement;
-    const feedbackElement = field === 'details' ? detailsFeedback : actionFeedback;
-    scoreElement.textContent = score;
+    const scoreEl = field === 'details' ? detailsScoreElement : actionScoreElement;
+    const feedbackEl = field === 'details' ? detailsFeedback : actionFeedback;
+    if (scoreEl) scoreEl.textContent = score;
+
     if (field === 'details') detailsScore = score;
     else actionScore = score;
-    updateFeedback(score, feedbackElement);
-  }
 
-  function updateFeedback(score, element) {
+    if (!feedbackEl) return;
     if (score < 40) {
-      element.textContent = 'Poor details. Please add more details & keywords.';
-      element.style.backgroundColor = "#ffebee";
+      feedbackEl.textContent = 'Poor details. Please add more details & keywords.';
+      feedbackEl.style.backgroundColor = "#ffebee";
     } else if (score < 70) {
-      element.textContent = 'Almost there! Plese add more details & keywords.';
-      element.style.backgroundColor = "#fff3e0";
+      feedbackEl.textContent = 'Almost there! Plese add more details & keywords.';
+      feedbackEl.style.backgroundColor = "#fff3e0";
     } else {
-      element.textContent = 'Details looks good.';
-      element.style.backgroundColor = "#e8f5e9";
+      feedbackEl.textContent = 'Details looks good.';
+      feedbackEl.style.backgroundColor = "#e8f5e9";
     }
   }
 
-  // ---------- Dependent dropdowns from data.json ----------
+  // ----------------------------
+  // Dependent dropdowns from data.json (kept)
+  // ----------------------------
   function populateCauseCode() {
     let causeDropdown = $("#cause_code");
     causeDropdown.html('<option value="">---Select Cause Code---</option>');
@@ -343,20 +392,19 @@
   }
 
   function populateCategory(cause_code) {
-    $("#category").html('<option value="">Select Category</option>');
-    $("#sub_category").html('<option value="">Select Sub Category</option>');
+    let categoryDropdown = $("#category").html('<option value="">Select Category</option>');
     if (jsonData[cause_code]) {
       $.each(jsonData[cause_code], function(category){
-        $("#category").append(`<option value="${category}">${category}</option>`);
+        categoryDropdown.append(`<option value="${category}">${category}</option>`);
       });
     }
   }
 
   function populateSubCategory(cause_code, category) {
-    $("#sub_category").html('<option value="">Select Sub Category</option>');
+    let subDropdown = $("#sub_category").html('<option value="">Select Sub Category</option>');
     if (jsonData[cause_code] && jsonData[cause_code][category]) {
       $.each(jsonData[cause_code][category], function(i, sub){
-        $("#sub_category").append(`<option value="${sub}">${sub}</option>`);
+        subDropdown.append(`<option value="${sub}">${sub}</option>`);
       });
     }
   }
@@ -365,7 +413,6 @@
     if (jsonData[selectedCause]) {
       $("#cause_code").val(selectedCause);
       populateCategory(selectedCause);
-
       if (selectedCategory && jsonData[selectedCause][selectedCategory]) {
         $("#category").val(selectedCategory);
         populateSubCategory(selectedCause, selectedCategory);
@@ -374,90 +421,127 @@
     }
   }
 
-  // ---------- UI show/hide ----------
-  function updateConditionalBlocks() {
-    const sub = $("#sub_state").val();
-    $("#Pending_Problem").toggle(sub === "Pending_Problem");
-    $("#Pending_Change").toggle(sub === "Pending_Change");
-    $("#Duplicate").toggle(sub === "Duplicate");
-  }
+  // ----------------------------
+  // Modal submit (DISABLE SECOND SUBMIT ONCE CLICKED)
+  // ----------------------------
+  const modalForm = document.getElementById('textForm');
+  modalForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
 
-  // ---------- Page init ----------
-  initDropdowns();
-  resolution_split();
+    const saveBtn = document.getElementById("saveBtn");
+    if (saveBtn.disabled) return; // guard
 
-  const detailsTextArea = document.getElementById('details');
-  const actionTakenTextArea = document.getElementById('action_taken');
-  const detailsScoreElement = document.getElementById('details-label-score');
-  const actionScoreElement = document.getElementById('action-label-score');
-  const detailsFeedback = document.getElementById('detailsFeedback');
-  const actionFeedback = document.getElementById('actionFeedback');
+    // Disable + grey out immediately (prevents double submits)
+    saveBtn.disabled = true;
+    saveBtn.classList.add("disabled");
+    const oldText = saveBtn.textContent;
+    saveBtn.textContent = "Submitting...";
 
-  calculateScore(detailsTextArea.value, 'details');
-  calculateScore(actionTakenTextArea.value, 'action_taken');
+    const stateVal = $("#state").val();
+    const subStateVal = $("#sub_tate").val();
 
-  detailsTextArea.addEventListener('input', (e) => handleInput(e, 'details'));
-  actionTakenTextArea.addEventListener('input', (e) => handleInput(e, 'action_taken'));
+    try {
+      if (stateVal === "pending") {
+        // Your original /update1 payload style
+        const data1 = {
+          modalState1: subStateVal,
+          original_inc: document.getElementById('original_inc').value,
+          modalWork: $("#work_notes").val(),
+          modalText1: "", // pending flow didn’t use closure note in your screenshot
+          Pending_problem1: $("#PendingProblem").val(),
+          Pending_Change1: $("#PendingChange").val(),
+          Duplicate1: $("#duplicate").val(),
+          cause_code1: "" // pending screen does not show cause code
+        };
 
-  // Load data.json then populate cause/category/subcategory
-  $.getJSON("/static/data.json", function(data) {
-    jsonData = data;
-    populateCauseCode();
-    autoSelectValues();
+        const response = await fetch('/update1', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json'},
+          body: JSON.stringify({content: data1})
+        });
+
+        await response.json();
+        alert("Incident is updated in ServiceNow");
+        window.location.href="/";
+        return;
+      }
+
+      // Resolved flow (/update)
+      const closureNote =
+        `Category : ${$("#category").val()}\n` +
+        `Sub_Category : ${$("#sub_category").val()}\n` +
+        `RCA : ${$("#details").val()}\n` +
+        `Action Taken : ${$("#action_taken").val()}\n` +
+        `Resolution Type : ${$("#resolution_type").val()}`;
+
+      const data = {
+        cause_code : $("#cause_code").val(),
+        sub_tate: subStateVal,
+        original_inc: document.getElementById('original_inc').value,
+        modalText: closureNote,
+        workNotes: $("#work_notes").val(),
+        Pending_problem: $("#PendingProblem").val(),
+        Pending_Change: $("#PendingChange").val(),
+        Duplicate: $("#duplicate").val()
+      };
+
+      const response = await fetch('/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify({content: data})
+      });
+
+      await response.json();
+      alert("Incident is closed in ServiceNow");
+      window.location.href="/";
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong submitting. Please try again.");
+
+      // Re-enable on failure
+      saveBtn.disabled = false;
+      saveBtn.classList.remove("disabled");
+      saveBtn.textContent = oldText;
+    }
   });
 
-  $("#cause_code").change(function() {
-    populateCategory($(this).val());
-  });
-
-  $("#category").change(function() {
-    populateSubCategory($("#cause_code").val(), $(this).val());
-  });
-
-  // state affects resolution type options
-  $("#state").change(function() {
-    const s = $(this).val();
-    setResolutionTypeOptions(s);
-  });
-
-  $("#sub_state").change(function() {
-    updateConditionalBlocks();
-  });
-
-  // initial conditional state
-  updateConditionalBlocks();
-
-  // ---------- Main submit button: validate + open modal ----------
+  // ----------------------------
+  // Main submit button -> validate + open modal
+  // ----------------------------
   $("#submitBtn").click(function() {
     const stateVal = $("#state").val();
-    const subState = $("#sub_state").val();
-    const cause_code = $("#cause_code").val();
-    const category = $("#category").val();
-    const sub_category = $("#sub_category").val();
-    const details = $("#details").val();
-    const action_taken = $("#action_taken").val();
-    const resolution_type = $("#resolution_type").val();
-    const PendingProblem = $("#PendingProblem").val();
-    const PendingChange = $("#PendingChange").val();
-    const Duplicate = $("#duplicate").val();
-    const workNotes = $("#work_notes").val();
+    const subState = $("#sub_tate").val();
 
     let isvalid = true;
     $(".form-control").removeClass("is-invalid");
     $("#errorMsg").hide().text("");
 
     if(!stateVal) { $("#state").addClass("is-invalid"); isvalid = false; }
-    if(!subState) { $("#sub_state").addClass("is-invalid"); isvalid = false; }
-    if(!cause_code) { $("#cause_code").addClass("is-invalid"); isvalid = false; }
-    if(!category) { $("#category").addClass("is-invalid"); isvalid = false; }
-    if(!sub_category) { $("#sub_category").addClass("is-invalid"); isvalid = false; }
-    if(!details || detailsScore < 75) { $("#details").addClass("is-invalid"); isvalid = false; }
-    if(!action_taken || actionScore < 75) { $("#action_taken").addClass("is-invalid"); isvalid = false; }
-    if(!resolution_type) { $("#resolution_type").addClass("is-invalid"); isvalid = false; }
+    if(!subState) { $("#sub_tate").addClass("is-invalid"); isvalid = false; }
+
+    const PendingProblem = $("#PendingProblem").val();
+    const PendingChange = $("#PendingChange").val();
+    const Duplicate = $("#duplicate").val();
 
     if(subState === "Pending_Problem" && !PendingProblem) { $("#PendingProblem").addClass("is-invalid"); isvalid = false; }
     if(subState === "Pending_Change" && !PendingChange) { $("#PendingChange").addClass("is-invalid"); isvalid = false; }
     if(subState === "Duplicate" && !Duplicate) { $("#duplicate").addClass("is-invalid"); isvalid = false; }
+
+    if (stateVal === "resolved") {
+      const cause_code = $("#cause_code").val();
+      const category = $("#category").val();
+      const sub_category = $("#sub_category").val();
+      const details = $("#details").val();
+      const action_taken = $("#action_taken").val();
+      const resolution_type = $("#resolution_type").val();
+
+      if(!cause_code) { $("#cause_code").addClass("is-invalid"); isvalid = false; }
+      if(!category) { $("#category").addClass("is-invalid"); isvalid = false; }
+      if(!sub_category) { $("#sub_category").addClass("is-invalid"); isvalid = false; }
+      if(!details || detailsScore < 75) { $("#details").addClass("is-invalid"); isvalid = false; }
+      if(!action_taken || actionScore < 75) { $("#action_taken").addClass("is-invalid"); isvalid = false; }
+      if(!resolution_type) { $("#resolution_type").addClass("is-invalid"); isvalid = false; }
+    }
 
     if(!isvalid) {
       $("#errorMsg").text("Please fill all the fields before submitting").show();
@@ -469,142 +553,54 @@
     $("#a2").toggle(subState === "Pending_Change");
     $("#a3").toggle(subState === "Duplicate");
 
-    // fill modal
+    // fill modal basics
     $("#modalState").val(stateVal);
     $("#modalSubState").val(subState);
     $("#modalProblem").val(PendingProblem);
     $("#modalChange").val(PendingChange);
     $("#modalDuplicate").val(Duplicate);
-    $("#modalCause").val(cause_code);
-    $("#modalWork").val(workNotes);
+    $("#modalWork").val($("#work_notes").val());
 
-    const closureNote =
-      `Category : ${category}\n` +
-      `Sub_Category : ${sub_category}\n` +
-      `RCA : ${details}\n` +
-      `Action Taken : ${action_taken}\n` +
-      `Resolution Type : ${resolution_type}`;
+    if (stateVal === "resolved") {
+      $("#resolvedModalFields").show();
+      $("#modalCause").val($("#cause_code").val());
 
-    $("#modalText").val(closureNote);
+      const closureNote =
+        `Category : ${$("#category").val()}\n` +
+        `Sub_Category : ${$("#sub_category").val()}\n` +
+        `RCA : ${$("#details").val()}\n` +
+        `Action Taken : ${$("#action_taken").val()}\n` +
+        `Resolution Type : ${$("#resolution_type").val()}`;
 
-    // ensure modal submit button is re-enabled each time modal is opened
-    const saveBtn = document.getElementById('saveBtn');
-    if (saveBtn) {
-      saveBtn.disabled = false;
-      saveBtn.classList.remove('disabled');
-      saveBtn.textContent = "Submit";
+      $("#modalText").val(closureNote);
+    } else {
+      $("#resolvedModalFields").hide();
+      $("#modalCause").val("");
+      $("#modalText").val("");
     }
+
+    // re-enable modal submit every time modal opens (fresh)
+    const saveBtn = document.getElementById("saveBtn");
+    saveBtn.disabled = false;
+    saveBtn.classList.remove("disabled");
+    saveBtn.textContent = "Submit";
 
     $("#myModal").modal("show");
   });
 
-  // ---------- Modal submit: disable + grey out on first click, prevent double-submit ----------
-  const form = document.getElementById('textForm');
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const saveBtn = document.getElementById('saveBtn');
-    const originalBtnText = saveBtn ? saveBtn.textContent : "Submit";
-
-    if (saveBtn) {
-      saveBtn.disabled = true;
-      saveBtn.classList.add('disabled');
-      saveBtn.textContent = "Submitting...";
-    }
-
-    try {
-      const stateVal = $("#state").val();
-      const subStateVal = $("#sub_state").val();
-
-      const payloadCommon = {
-        sub_state: subStateVal,
-        cause_code: $("#cause_code").val(),
-        category: $("#category").val(),
-        sub_category: $("#sub_category").val(),
-        rca: $("#details").val(),
-        action_taken: $("#action_taken").val(),
-        resolution_type: $("#resolution_type").val(),
-        work_notes: $("#work_notes").val(),
-        pending_problem: $("#PendingProblem").val(),
-        pending_change: $("#PendingChange").val(),
-        duplicate: $("#duplicate").val(),
-        original_inc: $("#original_inc").val()
-      };
-
-      let url = "/update";
-      let body = {};
-
-      if (stateVal === "pending") {
-        url = "/update1";
-        body = {
-          content: {
-            modalState1: subStateVal,
-            original_inc: payloadCommon.original_inc,
-            modalWork: payloadCommon.work_notes,
-            modalText1: document.getElementById('modalText').value,
-            Pending_problem1: payloadCommon.pending_problem,
-            Pending_Change1: payloadCommon.pending_change,
-            Duplicate1: payloadCommon.duplicate,
-            cause_code1: payloadCommon.cause_code
-          }
-        };
-      } else {
-        url = "/update";
-        body = {
-          content: {
-            cause_code: payloadCommon.cause_code,
-            sub_tate: subStateVal,
-            original_inc: payloadCommon.original_inc,
-            modalText: document.getElementById('modalText').value,
-            workNotes: payloadCommon.work_notes,
-            Pending_problem: payloadCommon.pending_problem,
-            Pending_Change: payloadCommon.pending_change,
-            Duplicate: payloadCommon.duplicate
-          }
-        };
-      }
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify(body)
-      });
-
-      if (!response.ok) {
-        let msg = `Request failed (${response.status})`;
-        try {
-          const errJson = await response.json();
-          if (errJson && (errJson.error || errJson.message)) {
-            msg = errJson.error || errJson.message;
-          }
-        } catch (_) {}
-        throw new Error(msg);
-      }
-
-      await response.json();
-
-      alert(stateVal === "pending"
-        ? "Incident is updated in ServiceNow"
-        : "Incident is closed in ServiceNow"
-      );
-      window.location.href = "/";
-
-    } catch (err) {
-      console.error(err);
-      alert(`Submit failed. Please try again.\n\n${err.message || err}`);
-
-      if (saveBtn) {
-        saveBtn.disabled = false;
-        saveBtn.classList.remove('disabled');
-        saveBtn.textContent = originalBtnText || "Submit";
-      }
-    }
-  });
-
+  // ----------------------------
+  // Reset
+  // ----------------------------
   $("#resetBtn").click(function() {
     $("#state").val("resolved");
-    setResolutionTypeOptions("resolved");
-    $("#sub_state").val("");
+    fillSelect("sub_tate", "---Select Sub State---", DROPDOWN_OPTIONS.subStates);
+    setStateUI("resolved");
+
+    $("#sub_tate").val("");
+    $("#PendingProblem").val("");
+    $("#PendingChange").val("");
+    $("#duplicate").val("");
+
     $("#cause_code").val("");
     $("#category").html('<option value="">Select Category</option>');
     $("#sub_category").html('<option value="">Select Sub Category</option>');
@@ -612,12 +608,56 @@
     $("#action_taken").val("");
     $("#resolution_type").val("");
     $("#work_notes").val("");
-    $("#PendingProblem").val("");
-    $("#PendingChange").val("");
-    $("#duplicate").val("");
+
     $(".form-control").removeClass("is-invalid");
     $("#errorMsg").hide().text("");
     updateConditionalBlocks();
+  });
+
+  // ----------------------------
+  // Init
+  // ----------------------------
+  // Populate substates once
+  fillSelect("sub_tate", "---Select Sub State---", DROPDOWN_OPTIONS.subStates);
+
+  // Default state UI
+  setStateUI($("#state").val());
+
+  // Initial conditional blocks
+  updateConditionalBlocks();
+
+  // Hooks
+  $("#state").on("change", function(){
+    setStateUI(this.value);
+  });
+
+  $("#sub_tate").on("change", function(){
+    updateConditionalBlocks();
+  });
+
+  // Load JSON (used for resolved only, but harmless to load once)
+  $.getJSON("/static/data.json", function(data) {
+    jsonData = data;
+    populateCauseCode();
+    resolution_split();
+    autoSelectValues();
+
+    // calculate initial scores if those fields exist
+    const d = document.getElementById("details");
+    const a = document.getElementById("action_taken");
+    if (d) calculateScore(d.value, 'details');
+    if (a) calculateScore(a.value, 'action_taken');
+
+    if (d) d.addEventListener('input', (e)=>handleInput(e,'details'));
+    if (a) a.addEventListener('input', (e)=>handleInput(e,'action_taken'));
+  });
+
+  $("#cause_code").change(function() {
+    populateCategory($(this).val());
+  });
+
+  $("#category").change(function() {
+    populateSubCategory($("#cause_code").val(), $(this).val());
   });
 </script>
 {% endblock %}
