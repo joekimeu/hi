@@ -1,0 +1,411 @@
+{% extends "layout.html" %}
+{% block content %}
+        <style>
+          .tree {
+            --spacing: 1.5rem;
+            --radius: 10px;
+          }
+         
+          .tree li {
+            display: block;
+            position: relative;
+            padding-left: calc(3 * var(--spacing) - var(--radius) - 2px);
+          }
+         
+          .tree ul {
+            margin-left: calc(var(--radius) - var(--spacing));
+            padding-left: 0;
+          }
+         
+          .tree ul li {
+            border-left: 2px solid #ddd;
+            margin-top: 10px;
+          }
+         
+          .tree ul li:last-child {
+            border-color: transparent;
+          }
+         
+          .tree ul li::before {
+            content: '';
+            display: block;
+            position: absolute;
+            top: calc(var(--spacing) / -2);
+            left: -2px;
+            width: calc(var(--spacing) + 2px);
+            height: calc(var(--spacing) + 1px);
+            border: solid #ddd;
+            border-width: 0 0 2px 2px;
+          }
+         
+          .tree summary {
+            display: block;
+            cursor: pointer;
+          }
+         
+          .tree summary::marker,
+          .tree summary::-webkit-details-marker {
+            display: none;
+          }
+         
+          .tree summary:focus {
+            outline: none;
+          }
+         
+          .tree summary:focus-visible {
+            outline: 1px dotted #000;
+          }
+         
+          .tree li::after,
+          .tree summary::before {
+            content: '';
+            display: block;
+            position: absolute;
+            top: calc(var(--spacing) / 2 - var(--radius));
+            left: calc(var(--spacing) - var(--radius) - 1px);
+            width: calc(2 * var(--radius));
+            height: calc(2 * var(--radius));
+            border-radius: 50%;
+            background: #ddd;
+          }
+         
+          .tree summary::before {
+            z-index: 1;
+            background: #696 url("{{url_for('static', filename='image/expand-collapse.svg')}}") 0 0;
+          }
+         
+          .tree details[open] > summary::before {
+            background-position: calc(-2 * var(--radius)) 0;
+          }
+         
+          /* Successor jobs pagination (tree section) */
+          .successor-pagination {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0 0.75rem 0;
+          }
+          .successor-pagination .successor-page-info {
+            font-weight: 600;
+            color: #555;
+          }
+        </style>
+   
+        <div class="container mt-3">
+          <div class ="row">  
+          <div class="col-10 col-xxl-10 col-xl-10 col-lg-10 col-md-10 col-sm-10"> </div>
+            <div class="col-2 col-xxl-2 col-xl-2 col-lg-2 col-md-2 col-sm-2">
+              <a href="{{url_for('home')}}" ><i  class="fa fa-home  fa-2x" style="color:rgb(204, 0, 0)" aria-hidden="true"></i><Span style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;">  Home</span></a>
+                 
+            </div>
+          </div>
+
+        <div class="row">
+          <div class="col-12 col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 "> 
+          <!-- <p class="fa-solid fa-envelope fa-2x" id="sendBtn1" style="float: right; color: rgb(204, 0, 0);" ><span style="font-size: 15px; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;"> E-mail</span></p> -->
+          <!-- <button class="btn btn-primary" id="sendBtn1" style="float: right;" >Send Email</button> -->
+            <input type="hidden" name="subject" id="successors_emailsubject">
+            <input type="hidden" name="subject" id="successors_emailsubject_test">
+            <input type="hidden" name="body" id="successors_emailmessage">
+            <p id ="responseMsg"></p>
+            <button class="btn btn-primary" id="successors_email_sendBtn">Send Email</button>
+          
+         <br/> <br/>
+         <h4>SLA Successors of {{short_job_name}}</h4>
+        
+        
+         <div class="table-responsive">
+        <table  id="myTable" class="table table-striped table-bordered" style="text-align: justify;" >
+          <thead class="table-dark sticky-top">
+            <tr>
+              <th>SuccAppID</th>
+              <th>Successor job</th>
+              <th>Workstation</th>
+              <th>Level</th>
+              <th>SLA Timing</th>
+              <!--<th>TLA</th>-->
+            </tr>
+          </thead>
+          <tbody>
+            {% set sla_jobs = [] %}
+            {% for level, records in grouped_data.items() %}
+            {% for record in records%}
+           
+            {% if record.Workstation == 'SLAI' or record.Workstation == 'SLAE'%}
+            {% set _ = sla_jobs.append(record) %}
+            {% endif %}        
+            {% endfor %}
+            {% endfor %}
+            {% if sla_jobs %}
+            {% for record in sla_jobs %}
+            <tr>              
+              <td>{{record.SuccAppID}}</td>
+              <td>{{record.SuccJobName}}</td>
+              <td>{{record.Workstation}}</td>
+              <td>{{record.Level}}</td>
+              <td>{{record.SLAdeadline}}</td>
+              <!--<td>{{record.TLA}}</td> -->
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr class="table table-bordered">
+              <td class="table-bordered"></td>
+              <td></td>
+              <td > <span style="color:#b30000; font-weight:500;">No SLA Downstream Jobs </span></td>
+              <td></td>
+              <td></td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+        <!--<h1>{{tla_email_id}}</h1> -->
+        </div>
+        </div>
+        </div>
+        
+        <br/>
+
+
+
+        <div class="row">
+        <div class="col-4 col-xxl-4 col-xl-4 col-lg-4 col-md-4 col-sm-4 ">
+        <h4>Downstreams</h4>
+
+        <div class="table-responsive">
+        <table  id="myTable_application" class="table table-striped table-bordered" style="text-align: justify;" >
+          <thead class="table-dark sticky-top sucessor_list">
+            <tr>
+              <th>S.No</th>
+              <th>Level</th>
+              <th>TLA Name</th>
+              
+            </tr>
+          </thead>
+          <tbody class="sucessor_list">
+            {% if tla_list_successors %}
+            {% for key, value in tla_list_successors.items() if key != "DAG" %}
+                <tr>              
+                    <td style="text-align: center;">{{loop.index}}</td>
+                    <td>Level: {{value}}</td>
+                    <td>{{key}}</td> 
+                </tr>
+            {% endfor %}
+            {% else %}
+            <tr class="table table-bordered">
+              <td class="table-bordered"></td>
+              <td> <span style="color:#b30000; font-weight:500;">No SLA Downstream Jobs </span></td>
+              <td></td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+        </div>
+        </div>
+        </div>
+
+
+
+       
+        <div class="row mt-5">
+          <div class = "col-12 col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12">
+        <h4>Successors of {{short_job_name}}</h4>
+       
+          {% if grouped_data %}
+          <ul class="tree">
+          <li>
+            <details open>
+              <summary>{{short_job_name}} </summary>
+              <ul>
+                {% for level,records in grouped_data.items() %}
+               
+                <li>
+                 
+                  <details>
+                    <summary>Level: {{ level }} : {{ records | length }} jobs</summary>
+                    <ul class="successor-records" data-page-size="5">
+                      {% for record in records %}
+                        <li>
+                            Application ID: <b>{{ record.SuccAppID }} </b>, &nbsp;
+                            Job Name: <b>{{ record.SuccJobName }} </b>, &nbsp;
+                            Work Station: <b>{{ record.Workstation }} </b>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                    <div class="successor-pagination" role="navigation" aria-label="Successor jobs pagination">
+                      <button type="button" class="btn btn-outline-secondary btn-sm successor-prev" disabled>
+                        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                        <span class="visually-hidden">Previous</span>
+                      </button>
+                      <span class="successor-page-info" aria-live="polite"></span>
+                      <button type="button" class="btn btn-outline-secondary btn-sm successor-next" disabled>
+                        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                        <span class="visually-hidden">Next</span>
+                      </button>
+                    </div>
+                  </details>
+                </li>
+                {% endfor %}
+              </ul>
+            </details>
+          </li>
+        </ul>
+        {% else %}
+            <p id="sendEmail" style="color:#b30000; font-weight:500;">No Successor Jobs <p>  
+        {% endif %}
+
+        <p style="display: none;"  id="downstream_emailsubject">{{tla_email_id}}</p>
+        <p style="display: none;"  id="downstream_emailsubject_test">DAG Job - {{short_job_name}} Failure</p>
+        <p style="display:none"  class="downstream_emailmessage" >
+            Hi All,
+            This is to notify you that the job - {{short_job_name}}  has failed, and we have identified your jobs are successor to the failed job. <br/>
+            We are working on fixing the job failure and will keep you posted on the updates. Please reach out to us if you have any concerns. <br/>
+            Thank you! <br/>
+            DAG support team
+        </p>
+
+        </div>
+      </div>
+      
+        
+       </div>
+     
+ 
+    <!--    <script src ="{{ url_for('static',filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script> -->
+    <script src ="{{ url_for('static',filename='node_modules2/jquery/dist/jquery.min.js') }}"></script>
+    <script src ="{{ url_for('static',filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src ="{{ url_for('static',filename='node_modules2/datatables.net/js/dataTables.min.js') }}"></script>
+    <script src ="{{ url_for('static',filename='node_modules2/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+         
+
+        <script>
+            
+        
+            $(document).ready(function () {
+                window.onload = checkKeyword_SendEmail;
+
+          $('#myTable').dataTable({
+                "order":[[2,"asc"]]
+          });
+          $('#myTable_application').dataTable({
+                "order":[[0,"asc"]]
+          });
+          
+          const successors_emailsubject = $('#downstream_emailsubject').text().trim();
+          const successors_emailsubject_test = $('#downstream_emailsubject_test').text().trim();
+          const successors_emailmessage = $('.downstream_emailmessage').text().trim();
+                
+          $('#successors_emailsubject').val(successors_emailsubject);
+          $('#successors_emailsubject_test').val(successors_emailsubject_test);
+          $('#successors_emailmessage').val(successors_emailmessage);
+
+              
+          initSuccessorPagination();
+        })
+
+
+            // Paginate successor jobs in the tree so only 5 show at a time (per level)
+            function initSuccessorPagination() {
+              $('ul.successor-records').each(function () {
+                const $list = $(this);
+                const pageSize = parseInt($list.data('page-size'), 10) || 5;
+                const $items = $list.children('li');
+                const totalItems = $items.length;
+                const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+                // The pagination controls are inserted immediately after the list
+                const $pager = $list.next('.successor-pagination');
+                const $prev = $pager.find('.successor-prev');
+                const $next = $pager.find('.successor-next');
+                const $info = $pager.find('.successor-page-info');
+
+                // Nothing to paginate
+                if (totalItems <= pageSize) {
+                  $pager.hide();
+                  return;
+                }
+
+                $list.data('current-page', 1);
+                $list.data('page-size', pageSize);
+                $list.data('total-pages', totalPages);
+
+                function render(page) {
+                  const clamped = Math.min(Math.max(page, 1), totalPages);
+                  const start = (clamped - 1) * pageSize;
+                  const end = start + pageSize;
+
+                  $items.each(function (idx) {
+                    $(this).toggle(idx >= start && idx < end);
+                  });
+
+                  $info.text(`Page ${clamped} of ${totalPages}`);
+                  $prev.prop('disabled', clamped === 1);
+                  $next.prop('disabled', clamped === totalPages);
+                  $list.data('current-page', clamped);
+                }
+
+                $prev.off('click').on('click', function () {
+                  render(($list.data('current-page') || 1) - 1);
+                });
+                $next.off('click').on('click', function () {
+                  render(($list.data('current-page') || 1) + 1);
+                });
+
+                // Initial render
+                render(1);
+              });
+            }
+
+            function checkKeyword_SendEmail() {
+                var text = document.getElementById("sendEmail").textContent.trim().toLowerCase();
+                var send_email_button = document.getElementById("successors_email_sendBtn");
+
+                if (text == "no successor jobs") {
+                    send_email_button.style.display = "none";
+                }
+                else {
+                    send_email_button.style.display = "inline-block";
+                }
+            }
+
+
+
+        function send_Successors_email() {
+          const successors_emailsubject = document.getElementById("successors_emailsubject").value;
+          const successors_emailsubject_test = document.getElementById("successors_emailsubject_test").value;
+          const successors_emailmessage = document.getElementById("successors_emailmessage").value;
+          
+          const confirmsend = confirm("Are you sure this will send an email to all the down streams?")
+          if(!confirmsend) {
+            return;
+          }
+
+          fetch('{{ url_for("send_email_to_successors") }}', {
+            method: 'POST',
+            headers: {
+              'Content-Type':'application/json'
+            },
+            body: JSON.stringify({successors_emailsubject,successors_emailsubject_test, successors_emailmessage})            
+          })
+          .then(response => response.json())
+          .then(data => {
+            document.getElementById('responseMsg').innerText = data.message;
+            document.getElementById('responseMsg').style.color = "green"
+            document.getElementById('responseMsg').style.display = "block"
+
+            setTimeout(() => {
+              document.getElementById('responseMsg').style.display = "none"
+            },3000)
+          })
+          .catch(error => {
+            document.getElementById('responseMsg').innerText = 'Error sending email';
+            document.getElementById('responseMsg').style.color = "red"
+            document.getElementById('responseMsg').style.display = "block"
+
+            setTimeout(() => {
+              document.getElementById('responseMsg').style.display = "none"
+            },3000)
+          });
+      }
+      document.getElementById('successors_email_sendBtn').onclick = send_Successors_email;
+        </script>
+{% endblock %}
