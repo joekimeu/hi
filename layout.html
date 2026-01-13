@@ -15,9 +15,43 @@
     <!-- Favicon + App styles -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/KeyBank_icon.svg') }}"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}"/>
+
+    <!-- Header user pill styling -->
+    <style>
+        .app-user {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+            font-size: 13px;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .user-id {
+            max-width: 160px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (max-width: 768px) {
+            .user-pill {
+                display: none;
+            }
+        }
+    </style>
 </head>
 
-<body>
+<body class="d-flex flex-column min-vh-100">
 
     <!-- HEADER / NAVBAR -->
     <nav class="navbar navbar-expand-lg border-bottom app-navbar">
@@ -26,9 +60,9 @@
             <!-- Brand -->
             <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('home') }}">
                 <span class="brand-dot"></span>
-                <span class="app-header-title fw-semibold">Intelligent Resolution Recommender</span>
-                <span class="opacity-75">/</span>
-                <span class="app-header-subtitle fw-bold">DAG</span>
+                <span class="app-header-title fw-semibold navhead" id="span">Intelligent Resolution Recommender</span>
+                <span class="opacity-75 navhead">-</span>
+                <span class="app-header-subtitle fw-bold navhead">DAG</span>
             </a>
 
             <!-- Mobile toggle -->
@@ -36,19 +70,24 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <!-- Right side (logo + user) -->
+            <!-- Right side (user + logo) -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center gap-3">
 
-                    <!-- User info -->
-                    <li class="nav-item d-flex align-items-center app-user">
-                        <span class="signed-in-label">Signed in as</span>
-                        <span id="racf" class="signed-in-user">{{ user }}</span>
+                    <!-- User info (fixed) -->
+                    <li class="nav-item app-user">
+                        <span class="user-pill" title="Signed in user">
+                            <i class="fa fa-user-circle" aria-hidden="true"></i>
+                            <span class="user-id"><b>{{ user_session }}</b></span>
+                        </span>
                     </li>
 
                     <!-- Logo -->
                     <li class="nav-item">
-                        <img src="{{ url_for('static', filename='image/logo.png') }}" class="image" alt="Logo" height="24"/>
+                        <img src="{{ url_for('static', filename='image/logo.png') }}"
+                             class="image"
+                             alt="Logo"
+                             height="24"/>
                     </li>
 
                 </ul>
@@ -56,64 +95,40 @@
         </div>
     </nav>
 
-
     <!-- MAIN CONTENT -->
-    {% block content %}
-    {% endblock %}
-
+    <main class="flex-fill container-fluid py-3">
+        {% block content %}
+        {% endblock %}
+    </main>
 
     <!-- FOOTER -->
-    <footer class="app-footer mt-4">
+    <footer class="app-footer mt-4" style="background-color: #303030;">
         <div class="container py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center text-center text-sm-start">
-            <span class="footer-title fw-semibold">Intelligent Resolution Recommender</span>
-            <span class="footer-subtext text-muted mt-2 mt-sm-0">Powered by DAG · Key Technology</span>
+            <span class="footer-title fw-semibold" style="color: white;">Intelligent Resolution Recommender</span>
+            <span class="footer-subtext text-muted mt-2 mt-sm-0" style="color: white;">
+                Powered by TCS - KeyBank Technology
+            </span>
         </div>
     </footer>
 
+    <!-- JS -->
+    <script src="{{ url_for('static', filename='node_modules2/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules2/datatables.net/js/dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules2/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Responsive header text -->
+    <script>
+        function updateSpanText() {
+            const span = document.getElementById("span");
+            if (window.innerWidth <= 768) {
+                span.textContent = "IRR";
+            } else {
+                span.textContent = "Intelligent Resolution Recommender";
+            }
+        }
+        updateSpanText();
+        window.addEventListener("resize", updateSpanText);
+    </script>
 </body>
 </html>
-
-<!-- An alternate header with space for a user name
-<html>
-<head>
-    <title>IRR</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules2/bootstrap/dist/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules2/datatables.net-bs5/css/dataTables.bootstrap5.min.css') }}">
-
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/KeyBank_icon.svg') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/style.css') }}">
-</head>
-
-<body>
-
-<nav class="navbar navbar-expand-lg">
-    <div class="container">
-        <a class="navbar-brand" href="#">
-            <h2 style="color: white;">IRR</h2>
-        </a>
-        <a class="navbar-brand" href="#" style="color: white;">DAG</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <p style="margin-top: 10px; color: white;">
-                        <span id="racf">{{ user }}</span>&nbsp;&nbsp;&nbsp;
-                    </p>
-                </li>
-                <li class="nav-item">
-                    <img src="{{ url_for('static', filename='image/logo.png') }}" class="image" alt="Logo">
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav> -->
