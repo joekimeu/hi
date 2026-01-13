@@ -1,280 +1,437 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>IRR — DAG · Successors</title>
+{% extends "layout.html" %}
+{% block content %}
+        <style>
+          .tree {
+            --spacing: 1.5rem;
+            --radius: 10px;
+          }
+         
+          .tree li {
+            display: block;
+            position: relative;
+            padding-left: calc(3 * var(--spacing) - var(--radius) - 2px);
+          }
+         
+          .tree ul {
+            margin-left: calc(var(--radius) - var(--spacing));
+            padding-left: 0;
+          }
+         
+          .tree ul li {
+            border-left: 2px solid #ddd;
+            margin-top: 10px;
+          }
+         
+          .tree ul li:last-child {
+            border-color: transparent;
+          }
+         
+          .tree ul li::before {
+            content: '';
+            display: block;
+            position: absolute;
+            top: calc(var(--spacing) / -2);
+            left: -2px;
+            width: calc(var(--spacing) + 2px);
+            height: calc(var(--spacing) + 1px);
+            border: solid #ddd;
+            border-width: 0 0 2px 2px;
+          }
+         
+          .tree summary {
+            display: block;
+            cursor: pointer;
+          }
+         
+          .tree summary::marker,
+          .tree summary::-webkit-details-marker {
+            display: none;
+          }
+         
+          .tree summary:focus {
+            outline: none;
+          }
+         
+          .tree summary:focus-visible {
+            outline: 1px dotted #000;
+          }
+         
+          .tree li::after,
+          .tree summary::before {
+            content: '';
+            display: block;
+            position: absolute;
+            top: calc(var(--spacing) / 2 - var(--radius));
+            left: calc(var(--spacing) - var(--radius) - 1px);
+            width: calc(2 * var(--radius));
+            height: calc(2 * var(--radius));
+            border-radius: 50%;
+            background: #ddd;
+          }
+         
+          .tree summary::before {
+            z-index: 1;
+            background: #696 url("{{url_for('static', filename='image/expand-collapse.svg')}}") 0 0;
+          }
+         
+          .tree details[open] > summary::before {
+            background-position: calc(-2 * var(--radius)) 0;
+          }
 
-  <!-- Bootstrap 5 + DataTables (Bootstrap 5 theme) -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.css" rel="stylesheet">
+          /* ---------------------------
+             Successor Tree Pagination UI
+             --------------------------- */
+          .tree-pager {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0 14px 0;
+          }
 
-  <!-- Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+          .tree-pager .pager-label {
+            font-size: 13px;
+            color: #555;
+          }
 
-  <!-- Favicon + App styles -->
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/KeyBank_icon.svg') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}"/>
+          .tree-pager button {
+            border: 1px solid #ccc;
+            background: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            line-height: 1;
+          }
 
-  <style>
-    /* Tree view */
-    .tree { --spacing: 1.5rem; --radius: 10px; }
-    .tree li { display:block; position:relative; padding-left: calc(3 * var(--spacing) - var(--radius) - 2px);}
-    .tree ul { margin-left: calc(var(--radius) - var(--spacing)); padding-left:0;}
-    .tree ul li { border-left: 2px solid #ddd; margin-top: 10px;}
-    .tree ul li:last-child { border-color: transparent;}
-    .tree ul li::before { content:''; position:absolute; top: calc(var(--spacing)/-2); left:-2px; width:calc(var(--spacing)+2px); height:calc(var(--spacing)+1px); border:solid #ddd; border-width:0 0 2px 2px; }
-    .tree summary { display:block; cursor:pointer;}
-    .tree summary::marker, .tree summary::-webkit-details-marker { display:none;}
-    .tree summary:focus { outline:none;}
-    .tree summary:focus-visible { outline:1px dotted #000;}
-    .tree li::after, .tree summary::before { content:''; position:absolute; top: calc(var(--spacing)/2 - var(--radius)); left: calc(var(--spacing) - var(--radius) - 1px); width: calc(2*var(--radius)); height: calc(2*var(--radius)); border-radius:50%; background:#ddd;}
-    .tree summary::before { z-index:1; background:#696 url("{{url_for('static', filename='image/expand-collapse.svg')}}") 0 0;}
-    .tree details[open] > summary::before { background-position: calc(-2*var(--radius)) 0; }
-
-    .page-subtitle { color: var(--muted, #6b7280); }
-    .description-cell { max-width: 680px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .badge-pill { border-radius: 999px; }
-  </style>
-</head>
-<body>
-  <!-- Top bar -->
-  <nav class="navbar navbar-expand-lg border-bottom app-navbar">
-    <div class="container-fluid px-3">
-      <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('home') }}">
-        <span class="brand-dot"></span>
-        <span class="fw-semibold">IRR</span>
-        <span class="opacity-75">—</span>
-        <span class="fw-bold fst-italic">DAG</span>
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto align-items-center gap-3">
-          <li class="nav-item">
-            <img src="{{ url_for('static', filename='image/logo.png') }}" class="image" alt="Logo" height="24">
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Page header + toolbar -->
-  <header class="container-xxl py-4">
-    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
-      <div>
-        <h1 class="h4 mb-1">Successors of <span class="fw-semibold">{{ short_job_name }}</span></h1>
-        <p class="page-subtitle mb-0">SLA successors and downstream dependency tree.</p>
-      </div>
-
-      <div class="toolbar card border-0 shadow-sm p-2">
-        <div class="row g-2 align-items-center">
-          <div class="col-12 col-md">
-            <div class="input-group">
-              <span class="input-group-text bg-transparent border-0 ps-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.85-3.85zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-                </svg>
-              </span>
-              <input id="globalSearch" type="search" class="form-control border-0" placeholder="Search successors (AppID, job, workstation…)" />
+          .tree-pager button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+          }
+         
+        </style>
+   
+        <div class="container mt-3">
+          <div class ="row">  
+          <div class="col-10 col-xxl-10 col-xl-10 col-lg-10 col-md-10 col-sm-10"> </div>
+            <div class="col-2 col-xxl-2 col-xl-2 col-lg-2 col-md-2 col-sm-2">
+              <a href="{{url_for('home')}}" ><i  class="fa fa-home  fa-2x" style="color:rgb(204, 0, 0)" aria-hidden="true"></i><Span style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;">  Home</span></a>
+                 
             </div>
           </div>
 
-          <div class="col-6 col-md-auto">
+        <div class="row">
+          <div class="col-12 col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 "> 
+          <!-- <p class="fa-solid fa-envelope fa-2x" id="sendBtn1" style="float: right; color: rgb(204, 0, 0);" ><span style="font-size: 15px; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;"> E-mail</span></p> -->
+          <!-- <button class="btn btn-primary" id="sendBtn1" style="float: right;" >Send Email</button> -->
+            <input type="hidden" name="subject" id="successors_emailsubject">
+            <input type="hidden" name="subject" id="successors_emailsubject_test">
+            <input type="hidden" name="body" id="successors_emailmessage">
+            <p id ="responseMsg"></p>
             <button class="btn btn-primary" id="successors_email_sendBtn">Send Email</button>
-          </div>
+          
+         <br/> <br/>
+         <h4>SLA Successors of {{short_job_name}}</h4>
+        
+        
+         <div class="table-responsive">
+        <table  id="myTable" class="table table-striped table-bordered" style="text-align: justify;" >
+          <thead class="table-dark sticky-top">
+            <tr>
+              <th>SuccAppID</th>
+              <th>Successor job</th>
+              <th>Workstation</th>
+              <th>Level</th>
+              <th>SLA Timing</th>
+              <!--<th>TLA</th>-->
+            </tr>
+          </thead>
+          <tbody>
+            {% set sla_jobs = [] %}
+            {% for level, records in grouped_data.items() %}
+            {% for record in records%}
+           
+            {% if record.Workstation == 'SLAI' or record.Workstation == 'SLAE'%}
+            {% set _ = sla_jobs.append(record) %}
+            {% endif %}        
+            {% endfor %}
+            {% endfor %}
+            {% if sla_jobs %}
+            {% for record in sla_jobs %}
+            <tr>              
+              <td>{{record.SuccAppID}}</td>
+              <td>{{record.SuccJobName}}</td>
+              <td>{{record.Workstation}}</td>
+              <td>{{record.Level}}</td>
+              <td>{{record.SLAdeadline}}</td>
+              <!--<td>{{record.TLA}}</td> -->
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr class="table table-bordered">
+              <td class="table-bordered"></td>
+              <td></td>
+              <td > <span style="color:#b30000; font-weight:500;">No SLA Downstream Jobs </span></td>
+              <td></td>
+              <td></td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+        <!--<h1>{{tla_email_id}}</h1> -->
         </div>
-      </div>
-    </div>
-  </header>
+        </div>
+        </div>
+        
+        <br/>
 
-  <!-- Hidden email fields -->
-  <input type="hidden" id="successors_emailsubject">
-  <input type="hidden" id="successors_emailsubject_test">
-  <input type="hidden" id="successors_emailmessage">
-  <div id="responseMsg" class="container-xxl"></div>
 
-  <!-- SLA Successors table -->
-  <main class="container-xxl pb-5">
-    <div class="card shadow-sm border-0 mb-4">
-      <div class="card-body p-0">
+
+        <div class="row">
+        <div class="col-4 col-xxl-4 col-xl-4 col-lg-4 col-md-4 col-sm-4 ">
+        <h4>Downstreams</h4>
+
         <div class="table-responsive">
-          <table id="successorsTable" class="table table-hover align-middle mb-0">
-            <thead class="table-light sticky-top">
-              <tr>
-                <th style="width: 140px;">SuccAppID</th>
-                <th>Successor Job</th>
-                <th style="width: 140px;">Workstation</th>
-                <th style="width: 120px;">Level</th>
-                <th style="width: 160px;">SLA Timing</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% set sla_jobs = [] %}
-              {% for level, records in grouped_data.items() %}
-                {% for record in records %}
-                  {% if record.Workstation == 'SLAI' or record.Workstation == 'SLAE' %}
-                    {% set _ = sla_jobs.append(record) %}
-                  {% endif %}
-                {% endfor %}
-              {% endfor %}
-
-              {% if sla_jobs %}
-                {% for record in sla_jobs %}
-                  <tr>
-                    <td><span class="badge text-bg-secondary badge-pill">{{ record.SuccAppID }}</span></td>
-                    <td class="description-cell">{{ record.SuccJobName }}</td>
-                    <td>{{ record.Workstation }}</td>
-                    <td>{{ record.Level }}</td>
-                    <td>{{ record.SLAdeadline }}</td>
-                  </tr>
-                {% endfor %}
-              {% else %}
-                <tr>
-                  <td></td>
-                  <td><span style="color:#b30000; font-weight:600;" id="sendEmail">No Successor Jobs</span></td>
-                  <td></td><td></td><td></td>
+        <table  id="myTable_application" class="table table-striped table-bordered" style="text-align: justify;" >
+          <thead class="table-dark sticky-top sucessor_list">
+            <tr>
+              <th>S.No</th>
+              <th>Level</th>
+              <th>TLA Name</th>
+              
+            </tr>
+          </thead>
+          <tbody class="sucessor_list">
+            {% if tla_list_successors %}
+            {% for key, value in tla_list_successors.items() if key != "DAG" %}
+                <tr>              
+                    <td style="text-align: center;">{{loop.index}}</td>
+                    <td>Level: {{value}}</td>
+                    <td>{{key}}</td> 
                 </tr>
-              {% endif %}
-            </tbody>
-          </table>
+            {% endfor %}
+            {% else %}
+            <tr class="table table-bordered">
+              <td class="table-bordered"></td>
+              <td> <span style="color:#b30000; font-weight:500;">No SLA Downstream Jobs </span></td>
+              <td></td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
         </div>
-      </div>
-    </div>
+        </div>
+        </div>
 
-    <!-- Dependency tree -->
-    <div class="card shadow-sm border-0">
-      <div class="card-body">
-        <h5 class="mb-3">Dependency Tree</h5>
 
-        {% if grouped_data %}
+
+       
+        <div class="row mt-5">
+          <div class = "col-12 col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12">
+        <h4>Successors of {{short_job_name}}</h4>
+
+        <!-- Tree pager (ONLY affects the Level list in the tree below) -->
+        <div id="successorTreePager" class="tree-pager" style="display:none;">
+          <button id="successorPrevBtn" type="button" aria-label="Previous 5 levels">
+            <i class="fa fa-chevron-left"></i>
+          </button>
+          <button id="successorNextBtn" type="button" aria-label="Next 5 levels">
+            <i class="fa fa-chevron-right"></i>
+          </button>
+          <span id="successorPagerLabel" class="pager-label"></span>
+        </div>
+       
+          {% if grouped_data %}
           <ul class="tree">
-            <li>
-              <details open>
-                <summary>{{ short_job_name }}</summary>
-                <ul>
-                  {% for level, records in grouped_data.items() %}
-                    <li>
-                      <details>
-                        <summary>Level: {{ level }} ({{ records | length }} jobs)</summary>
-                        <ul>
-                          {% for record in records %}
-                            <li>
-                              Application ID: <b>{{ record.SuccAppID }}</b>, &nbsp;
-                              Job Name: <b>{{ record.SuccJobName }}</b>, &nbsp;
-                              Work Station: <b>{{ record.Workstation }}</b>
-                            </li>
-                          {% endfor %}
-                        </ul>
-                      </details>
-                    </li>
-                  {% endfor %}
-                </ul>
-              </details>
-            </li>
-          </ul>
+          <li>
+            <details open>
+              <summary>{{short_job_name}} </summary>
+              <!-- IMPORTANT: this UL is what we paginate (Level items only) -->
+              <ul id="successor-level-list">
+                {% for level,records in grouped_data.items() %}
+                <li class="level-item">
+                  <details>
+                    <summary>Level: {{ level }} : {{ records | length }} jobs</summary>
+                    <ul>
+                      {% for record in records %}
+                        <li>
+                            Application ID: <b>{{ record.SuccAppID }} </b>, &nbsp;
+                            Job Name: <b>{{ record.SuccJobName }} </b>, &nbsp;
+                            Work Station: <b>{{ record.Workstation }} </b>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </details>
+                </li>
+                {% endfor %}
+              </ul>
+            </details>
+          </li>
+        </ul>
         {% else %}
-          <p id="sendEmail" style="color:#b30000; font-weight:600;">No Successor Jobs</p>
+            <p id="sendEmail" style="color:#b30000; font-weight:500;">No Successor Jobs <p>  
         {% endif %}
 
-        <!-- Email payload seeds -->
-        <p style="display:none;" id="downstream_emailsubject">{{ tla_email_id }}</p>
-        <p style="display:none;" id="downstream_emailsubject_test">DAG Job - {{ short_job_name }} Failure</p>
-        <p style="display:none;" class="downstream_emailmessage">
-          Hi All,
-          This is to notify you that the job - {{ short_job_name }}  has failed, and we have identified your jobs are successor to the failed job. <br/>
-          We are working on fixing the job failure and will keep you posted on the updates. Please reach out to us if you have any concerns. <br/>
-          Thank you! <br/>
-          IRR Team.
+        <p style="display: none;"  id="downstream_emailsubject">{{tla_email_id}}</p>
+        <p style="display: none;"  id="downstream_emailsubject_test">DAG Job - {{short_job_name}} Failure</p>
+        <p style="display:none"  class="downstream_emailmessage" >
+            Hi All,
+            This is to notify you that the job - {{short_job_name}}  has failed, and we have identified your jobs are successor to the failed job. <br/>
+            We are working on fixing the job failure and will keep you posted on the updates. Please reach out to us if you have any concerns. <br/>
+            Thank you! <br/>
+            DAG support team
         </p>
+
+        </div>
       </div>
-    </div>
-  </main>
+      
+        
+       </div>
+     
+ 
+    <!--    <script src ="{{ url_for('static',filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script> -->
+    <script src ="{{ url_for('static',filename='node_modules2/jquery/dist/jquery.min.js') }}"></script>
+    <script src ="{{ url_for('static',filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src ="{{ url_for('static',filename='node_modules2/datatables.net/js/dataTables.min.js') }}"></script>
+    <script src ="{{ url_for('static',filename='node_modules2/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+         
 
-  <!-- Scripts (Flask static versions from mechanics file) -->
-  <script src ="{{ url_for('static',filename='node_modules2/jquery/dist/jquery.min.js') }}"></script>
-  <script src ="{{ url_for('static',filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
-  <script src ="{{ url_for('static',filename='node_modules2/datatables.net/js/dataTables.min.js') }}"></script>
-  <script src ="{{ url_for('static',filename='node_modules2/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+        <script>
+            
+        
+            $(document).ready(function () {
+                window.onload = checkKeyword_SendEmail;
 
-  <script>
-    $(document).ready(function () {
-      window.onload = checkKeyword_SendEmail;
+          $('#myTable').dataTable({
+                "order":[[2,"asc"]]
+          });
+          $('#myTable_application').dataTable({
+                "order":[[0,"asc"]]
+          });
 
-      const dt = new DataTable('#successorsTable', {
-        paging: true,
-        pageLength: 10,
-        order: [[2, 'asc']],
-        layout: { topStart: null }
-      });
+          // NEW: paginate the Level list in the successors tree (5 per page)
+          initSuccessorTreePagination(5);
+          
+          const successors_emailsubject = $('#downstream_emailsubject').text().trim();
+          const successors_emailsubject_test = $('#downstream_emailsubject_test').text().trim();
+          const successors_emailmessage = $('.downstream_emailmessage').text().trim();
+                
+          $('#successors_emailsubject').val(successors_emailsubject);
+          $('#successors_emailsubject_test').val(successors_emailsubject_test);
+          $('#successors_emailmessage').val(successors_emailmessage);
 
-      // Global search
-      $('#globalSearch').on('input', function (e) {
-        dt.search(e.target.value).draw();
-      });
+              
+        })
 
-      // Seed hidden email fields
-      const successors_emailsubject = $('#downstream_emailsubject').text().trim();
-      const successors_emailsubject_test = $('#downstream_emailsubject_test').text().trim();
-      const successors_emailmessage = $('.downstream_emailmessage').text().trim();
+            function checkKeyword_SendEmail() {
+                var text = document.getElementById("sendEmail").textContent.trim().toLowerCase();
+                var send_email_button = document.getElementById("successors_email_sendBtn");
 
-      $('#successors_emailsubject').val(successors_emailsubject);
-      $('#successors_emailsubject_test').val(successors_emailsubject_test);
-      $('#successors_emailmessage').val(successors_emailmessage);
-    });
+                if (text == "no successor jobs") {
+                    send_email_button.style.display = "none";
+                }
+                else {
+                    send_email_button.style.display = "inline-block";
+                }
+            }
 
-    function checkKeyword_SendEmail() {
-      var textElement = document.getElementById("sendEmail");
-      var text = textElement ? textElement.textContent.trim().toLowerCase() : "";
-      var send_email_button = document.getElementById("successors_email_sendBtn");
+            // -----------------------------------------
+            // NEW: Tree pagination (Level list only)
+            // -----------------------------------------
+            function initSuccessorTreePagination(pageSize) {
+              const list = document.getElementById('successor-level-list');
+              if (!list) return;
 
-      if (!send_email_button) return;
+              const items = Array.from(list.querySelectorAll(':scope > li.level-item'));
+              const total = items.length;
 
-      if (text === "no successor jobs") {
-        send_email_button.style.display = "none";
-      } else {
-        send_email_button.style.display = "inline-block";
+              // If 5 or fewer levels, no pager needed
+              const pager = document.getElementById('successorTreePager');
+              const prevBtn = document.getElementById('successorPrevBtn');
+              const nextBtn = document.getElementById('successorNextBtn');
+              const label = document.getElementById('successorPagerLabel');
+
+              if (!pager || !prevBtn || !nextBtn || !label) return;
+
+              if (total <= pageSize) {
+                pager.style.display = "none";
+                items.forEach(li => li.style.display = "");
+                return;
+              }
+
+              pager.style.display = "flex";
+
+              let currentPage = 0;
+              const totalPages = Math.ceil(total / pageSize);
+
+              function renderPage() {
+                const start = currentPage * pageSize;
+                const end = Math.min(start + pageSize, total);
+
+                items.forEach((li, idx) => {
+                  li.style.display = (idx >= start && idx < end) ? "" : "none";
+                });
+
+                prevBtn.disabled = (currentPage === 0);
+                nextBtn.disabled = (currentPage >= totalPages - 1);
+
+                label.textContent = `Showing ${start + 1}-${end} of ${total} levels`;
+              }
+
+              prevBtn.addEventListener('click', function() {
+                if (currentPage > 0) {
+                  currentPage--;
+                  renderPage();
+                }
+              });
+
+              nextBtn.addEventListener('click', function() {
+                if (currentPage < totalPages - 1) {
+                  currentPage++;
+                  renderPage();
+                }
+              });
+
+              renderPage();
+            }
+
+
+
+        function send_Successors_email() {
+          const successors_emailsubject = document.getElementById("successors_emailsubject").value;
+          const successors_emailsubject_test = document.getElementById("successors_emailsubject_test").value;
+          const successors_emailmessage = document.getElementById("successors_emailmessage").value;
+          
+          const confirmsend = confirm("Are you sure this will send an email to all the down streams?")
+          if(!confirmsend) {
+            return;
+          }
+
+          fetch('{{ url_for("send_email_to_successors") }}', {
+            method: 'POST',
+            headers: {
+              'Content-Type':'application/json'
+            },
+            body: JSON.stringify({successors_emailsubject,successors_emailsubject_test, successors_emailmessage})            
+          })
+          .then(response => response.json())
+          .then(data => {
+            document.getElementById('responseMsg').innerText = data.message;
+            document.getElementById('responseMsg').style.color = "green"
+            document.getElementById('responseMsg').style.display = "block"
+
+            setTimeout(() => {
+              document.getElementById('responseMsg').style.display = "none"
+            },3000)
+          })
+          .catch(error => {
+            document.getElementById('responseMsg').innerText = 'Error sending email';
+            document.getElementById('responseMsg').style.color = "red"
+            document.getElementById('responseMsg').style.display = "block"
+
+            setTimeout(() => {
+              document.getElementById('responseMsg').style.display = "none"
+            },3000)
+          });
       }
-    }
-
-    function send_Successors_email() {
-      const successors_emailsubject = document.getElementById("successors_emailsubject").value;
-      const successors_emailsubject_test = document.getElementById("successors_emailsubject_test").value;
-      const successors_emailmessage = document.getElementById("successors_emailmessage").value;
-
-      const confirmsend = confirm("Are you sure this will send an email to all the down streams?");
-      if (!confirmsend) {
-        return;
-      }
-
-      fetch('{{ url_for("send_email_to_successors") }}', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify({successors_emailsubject,successors_emailsubject_test, successors_emailmessage})
-      })
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById('responseMsg').innerText = data.message;
-        document.getElementById('responseMsg').style.color = "green";
-        document.getElementById('responseMsg').style.display = "block";
-
-        setTimeout(() => {
-          document.getElementById('responseMsg').style.display = "none";
-        },3000);
-      })
-      .catch(error => {
-        document.getElementById('responseMsg').innerText = 'Error sending email';
-        document.getElementById('responseMsg').style.color = "red";
-        document.getElementById('responseMsg').style.display = "block";
-
-        setTimeout(() => {
-          document.getElementById('responseMsg').style.display = "none";
-        },3000);
-      });
-    }
-
-    document.getElementById('successors_email_sendBtn').onclick = send_Successors_email;
-  </script>
-</body>
-</html>
+      document.getElementById('successors_email_sendBtn').onclick = send_Successors_email;
+        </script>
+{% endblock %}
