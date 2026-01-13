@@ -106,6 +106,35 @@
             opacity: 0.45;
             cursor: not-allowed;
           }
+
+          /* ---------------------------
+             Per-level node pagination UI
+             --------------------------- */
+          .node-pager {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0 10px 0;
+          }
+
+          .node-pager .pager-label {
+            font-size: 12px;
+            color: #666;
+          }
+
+          .node-pager button {
+            border: 1px solid #ccc;
+            background: #fff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            line-height: 1;
+          }
+
+          .node-pager button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+          }
          
         </style>
    
@@ -120,8 +149,6 @@
 
         <div class="row">
           <div class="col-12 col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 "> 
-          <!-- <p class="fa-solid fa-envelope fa-2x" id="sendBtn1" style="float: right; color: rgb(204, 0, 0);" ><span style="font-size: 15px; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;"> E-mail</span></p> -->
-          <!-- <button class="btn btn-primary" id="sendBtn1" style="float: right;" >Send Email</button> -->
             <input type="hidden" name="subject" id="successors_emailsubject">
             <input type="hidden" name="subject" id="successors_emailsubject_test">
             <input type="hidden" name="body" id="successors_emailmessage">
@@ -141,14 +168,12 @@
               <th>Workstation</th>
               <th>Level</th>
               <th>SLA Timing</th>
-              <!--<th>TLA</th>-->
             </tr>
           </thead>
           <tbody>
             {% set sla_jobs = [] %}
             {% for level, records in grouped_data.items() %}
             {% for record in records%}
-           
             {% if record.Workstation == 'SLAI' or record.Workstation == 'SLAE'%}
             {% set _ = sla_jobs.append(record) %}
             {% endif %}        
@@ -162,7 +187,6 @@
               <td>{{record.Workstation}}</td>
               <td>{{record.Level}}</td>
               <td>{{record.SLAdeadline}}</td>
-              <!--<td>{{record.TLA}}</td> -->
             </tr>
             {% endfor %}
             {% else %}
@@ -176,14 +200,11 @@
             {% endif %}
           </tbody>
         </table>
-        <!--<h1>{{tla_email_id}}</h1> -->
         </div>
         </div>
         </div>
         
         <br/>
-
-
 
         <div class="row">
         <div class="col-4 col-xxl-4 col-xl-4 col-lg-4 col-md-4 col-sm-4 ">
@@ -196,7 +217,6 @@
               <th>S.No</th>
               <th>Level</th>
               <th>TLA Name</th>
-              
             </tr>
           </thead>
           <tbody class="sucessor_list">
@@ -221,11 +241,8 @@
         </div>
         </div>
 
-
-
-       
         <div class="row mt-5">
-          <div class = "col-12 col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12">
+          <div class="col-12 col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12">
         <h4>Successors of {{short_job_name}}</h4>
 
         <!-- Tree pager (ONLY affects the Level list in the tree below) -->
@@ -282,44 +299,38 @@
 
         </div>
       </div>
-      
-        
        </div>
      
- 
-    <!--    <script src ="{{ url_for('static',filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script> -->
     <script src ="{{ url_for('static',filename='node_modules2/jquery/dist/jquery.min.js') }}"></script>
     <script src ="{{ url_for('static',filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
     <script src ="{{ url_for('static',filename='node_modules2/datatables.net/js/dataTables.min.js') }}"></script>
     <script src ="{{ url_for('static',filename='node_modules2/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
          
-
         <script>
-            
-        
             $(document).ready(function () {
                 window.onload = checkKeyword_SendEmail;
 
-          $('#myTable').dataTable({
-                "order":[[2,"asc"]]
-          });
-          $('#myTable_application').dataTable({
-                "order":[[0,"asc"]]
-          });
+                $('#myTable').dataTable({
+                    "order":[[2,"asc"]]
+                });
+                $('#myTable_application').dataTable({
+                    "order":[[0,"asc"]]
+                });
 
-          // NEW: paginate the Level list in the successors tree (5 per page)
-          initSuccessorTreePagination(5);
-          
-          const successors_emailsubject = $('#downstream_emailsubject').text().trim();
-          const successors_emailsubject_test = $('#downstream_emailsubject_test').text().trim();
-          const successors_emailmessage = $('.downstream_emailmessage').text().trim();
-                
-          $('#successors_emailsubject').val(successors_emailsubject);
-          $('#successors_emailsubject_test').val(successors_emailsubject_test);
-          $('#successors_emailmessage').val(successors_emailmessage);
+                // Paginate the Level list in the successors tree (5 levels per page)
+                initSuccessorTreePagination(5);
 
+                // Paginate jobs within each Level node (5 jobs per page)
+                initSuccessorNodePagination(5);
               
-        })
+                const successors_emailsubject = $('#downstream_emailsubject').text().trim();
+                const successors_emailsubject_test = $('#downstream_emailsubject_test').text().trim();
+                const successors_emailmessage = $('.downstream_emailmessage').text().trim();
+                    
+                $('#successors_emailsubject').val(successors_emailsubject);
+                $('#successors_emailsubject_test').val(successors_emailsubject_test);
+                $('#successors_emailmessage').val(successors_emailmessage);
+            });
 
             function checkKeyword_SendEmail() {
                 var text = document.getElementById("sendEmail").textContent.trim().toLowerCase();
@@ -334,7 +345,7 @@
             }
 
             // -----------------------------------------
-            // NEW: Tree pagination (Level list only)
+            // Tree pagination (Level list only)
             // -----------------------------------------
             function initSuccessorTreePagination(pageSize) {
               const list = document.getElementById('successor-level-list');
@@ -343,7 +354,6 @@
               const items = Array.from(list.querySelectorAll(':scope > li.level-item'));
               const total = items.length;
 
-              // If 5 or fewer levels, no pager needed
               const pager = document.getElementById('successorTreePager');
               const prevBtn = document.getElementById('successorPrevBtn');
               const nextBtn = document.getElementById('successorNextBtn');
@@ -393,45 +403,134 @@
               renderPage();
             }
 
+            // -----------------------------------------
+            // Per-Level node pagination (jobs within each Level)
+            // -----------------------------------------
+            function initSuccessorNodePagination(pageSize) {
+              const levelItems = Array.from(document.querySelectorAll('#successor-level-list > li.level-item'));
+              if (!levelItems.length) return;
 
+              levelItems.forEach((levelItem) => {
+                const details = levelItem.querySelector('details');
+                if (!details) return;
 
-        function send_Successors_email() {
-          const successors_emailsubject = document.getElementById("successors_emailsubject").value;
-          const successors_emailsubject_test = document.getElementById("successors_emailsubject_test").value;
-          const successors_emailmessage = document.getElementById("successors_emailmessage").value;
-          
-          const confirmsend = confirm("Are you sure this will send an email to all the down streams?")
-          if(!confirmsend) {
-            return;
+                // This is the UL that contains the individual job <li> items for the Level
+                const jobsUl = details.querySelector('ul');
+                if (!jobsUl) return;
+
+                const jobLis = Array.from(jobsUl.querySelectorAll(':scope > li'));
+                const totalJobs = jobLis.length;
+
+                if (totalJobs <= pageSize) {
+                  jobLis.forEach(li => li.style.display = "");
+                  return;
+                }
+
+                // Build pager UI for this Level
+                const pager = document.createElement('div');
+                pager.className = 'node-pager';
+
+                const prevBtn = document.createElement('button');
+                prevBtn.type = 'button';
+                prevBtn.setAttribute('aria-label', 'Previous jobs');
+                prevBtn.innerHTML = '<i class="fa fa-chevron-left"></i>';
+
+                const nextBtn = document.createElement('button');
+                nextBtn.type = 'button';
+                nextBtn.setAttribute('aria-label', 'Next jobs');
+                nextBtn.innerHTML = '<i class="fa fa-chevron-right"></i>';
+
+                const label = document.createElement('span');
+                label.className = 'pager-label';
+
+                pager.appendChild(prevBtn);
+                pager.appendChild(nextBtn);
+                pager.appendChild(label);
+
+                // Insert pager between summary and UL
+                const summary = details.querySelector('summary');
+                details.insertBefore(pager, jobsUl);
+
+                let currentPage = 0;
+                const totalPages = Math.ceil(totalJobs / pageSize);
+
+                function renderJobsPage() {
+                  const start = currentPage * pageSize;
+                  const end = Math.min(start + pageSize, totalJobs);
+
+                  jobLis.forEach((li, i) => {
+                    li.style.display = (i >= start && i < end) ? "" : "none";
+                  });
+
+                  prevBtn.disabled = (currentPage === 0);
+                  nextBtn.disabled = (currentPage >= totalPages - 1);
+
+                  label.textContent = `Showing ${start + 1}-${end} of ${totalJobs} jobs`;
+                }
+
+                prevBtn.addEventListener('click', () => {
+                  if (currentPage > 0) {
+                    currentPage--;
+                    renderJobsPage();
+                  }
+                });
+
+                nextBtn.addEventListener('click', () => {
+                  if (currentPage < totalPages - 1) {
+                    currentPage++;
+                    renderJobsPage();
+                  }
+                });
+
+                // Reset per-level pagination when expanding the level again
+                details.addEventListener('toggle', () => {
+                  if (details.open) {
+                    currentPage = 0;
+                    renderJobsPage();
+                  }
+                });
+
+                renderJobsPage();
+              });
+            }
+
+            function send_Successors_email() {
+              const successors_emailsubject = document.getElementById("successors_emailsubject").value;
+              const successors_emailsubject_test = document.getElementById("successors_emailsubject_test").value;
+              const successors_emailmessage = document.getElementById("successors_emailmessage").value;
+              
+              const confirmsend = confirm("Are you sure this will send an email to all the down streams?")
+              if(!confirmsend) {
+                return;
+              }
+
+              fetch('{{ url_for("send_email_to_successors") }}', {
+                method: 'POST',
+                headers: {
+                  'Content-Type':'application/json'
+                },
+                body: JSON.stringify({successors_emailsubject,successors_emailsubject_test, successors_emailmessage})            
+              })
+              .then(response => response.json())
+              .then(data => {
+                document.getElementById('responseMsg').innerText = data.message;
+                document.getElementById('responseMsg').style.color = "green"
+                document.getElementById('responseMsg').style.display = "block"
+
+                setTimeout(() => {
+                  document.getElementById('responseMsg').style.display = "none"
+                },3000)
+              })
+              .catch(error => {
+                document.getElementById('responseMsg').innerText = 'Error sending email';
+                document.getElementById('responseMsg').style.color = "red"
+                document.getElementById('responseMsg').style.display = "block"
+
+                setTimeout(() => {
+                  document.getElementById('responseMsg').style.display = "none"
+                },3000)
+              });
           }
-
-          fetch('{{ url_for("send_email_to_successors") }}', {
-            method: 'POST',
-            headers: {
-              'Content-Type':'application/json'
-            },
-            body: JSON.stringify({successors_emailsubject,successors_emailsubject_test, successors_emailmessage})            
-          })
-          .then(response => response.json())
-          .then(data => {
-            document.getElementById('responseMsg').innerText = data.message;
-            document.getElementById('responseMsg').style.color = "green"
-            document.getElementById('responseMsg').style.display = "block"
-
-            setTimeout(() => {
-              document.getElementById('responseMsg').style.display = "none"
-            },3000)
-          })
-          .catch(error => {
-            document.getElementById('responseMsg').innerText = 'Error sending email';
-            document.getElementById('responseMsg').style.color = "red"
-            document.getElementById('responseMsg').style.display = "block"
-
-            setTimeout(() => {
-              document.getElementById('responseMsg').style.display = "none"
-            },3000)
-          });
-      }
-      document.getElementById('successors_email_sendBtn').onclick = send_Successors_email;
+          document.getElementById('successors_email_sendBtn').onclick = send_Successors_email;
         </script>
 {% endblock %}
