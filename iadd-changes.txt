@@ -1,0 +1,119 @@
+Exact lines changed in iadd.html
+1) CSS added (for pager layout)
+
+Inserted BEFORE the closing </style>
+
+Original location: right before line 81 (</style>)
+
+Added lines (new block):
+
+          /* Successor jobs pagination (tree section) */
+          .successor-pagination {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0 0.75rem 0;
+          }
+          .successor-pagination .successor-page-info {
+            font-weight: 600;
+            color: #555;
+          }
+
+2) Mark the successor job list as paginated
+
+Changed line 214
+
+Before (line 214):
+
+                    <ul>
+
+
+After (line 214):
+
+                    <ul class="successor-records" data-page-size="5">
+
+3) Add pagination arrows + page indicator
+
+Inserted AFTER line 222 (right after the </ul> that closes the job list)
+
+Added block:
+
+                    <div class="successor-pagination" role="navigation" aria-label="Successor jobs pagination">
+                      <button type="button" class="btn btn-outline-secondary btn-sm successor-prev" disabled>
+                        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                        <span class="visually-hidden">Previous</span>
+                      </button>
+                      <span class="successor-page-info" aria-live="polite"></span>
+                      <button type="button" class="btn btn-outline-secondary btn-sm successor-next" disabled>
+                        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                        <span class="visually-hidden">Next</span>
+                      </button>
+                    </div>
+
+4) Initialize pagination on page load
+
+Inserted before the end of your $(document).ready(function () { ... }) block
+
+Inserted between original lines 277 and 280
+
+Added line:
+
+          initSuccessorPagination();
+
+5) Add pagination JavaScript functions
+
+Inserted BEFORE line 282 (before function checkKeyword_SendEmail())
+
+Added block:
+
+            // Paginate successor jobs in the tree so only 5 show at a time (per level)
+            function initSuccessorPagination() {
+              $('ul.successor-records').each(function () {
+                const $list = $(this);
+                const pageSize = parseInt($list.data('page-size'), 10) || 5;
+                const $items = $list.children('li');
+                const totalItems = $items.length;
+                const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+                // The pagination controls are inserted immediately after the list
+                const $pager = $list.next('.successor-pagination');
+                const $prev = $pager.find('.successor-prev');
+                const $next = $pager.find('.successor-next');
+                const $info = $pager.find('.successor-page-info');
+
+                // Nothing to paginate
+                if (totalItems <= pageSize) {
+                  $pager.hide();
+                  return;
+                }
+
+                $list.data('current-page', 1);
+                $list.data('page-size', pageSize);
+                $list.data('total-pages', totalPages);
+
+                function render(page) {
+                  const clamped = Math.min(Math.max(page, 1), totalPages);
+                  const start = (clamped - 1) * pageSize;
+                  const end = start + pageSize;
+
+                  $items.each(function (idx) {
+                    $(this).toggle(idx >= start && idx < end);
+                  });
+
+                  $info.text(`Page ${clamped} of ${totalPages}`);
+                  $prev.prop('disabled', clamped === 1);
+                  $next.prop('disabled', clamped === totalPages);
+                  $list.data('current-page', clamped);
+                }
+
+                $prev.off('click').on('click', function () {
+                  render(($list.data('current-page') || 1) - 1);
+                });
+                $next.off('click').on('click', function () {
+                  render(($list.data('current-page') || 1) + 1);
+                });
+
+                // Initial render
+                render(1);
+              });
+            }
