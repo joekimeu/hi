@@ -1,0 +1,265 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+  .resolution-block { margin-bottom: 1rem; }
+  .resolution-value { white-space: pre-wrap; }
+  .resolution-pre {
+    white-space: pre-wrap;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 0;
+  }
+</style>
+
+      <div class="container my-4">
+          <div class="row">
+          <div class="col-4 col-xxl-4 col-xl-4 col-lg-4 col-md-4 col-sm-4">
+             <form id="incForm" action="{{url_for('show_related_incidents')}}" method="post">
+                <input type="hidden" name = "incident_number" value ="{{original_incident}}">
+                <!-- 
+                <button class="btn btn-primary btn-lg" id="successors_email_sendBtn" type="submit">Back</button>
+                -->
+                <button class="link-btn" type="submit"><i  class="fa fa-arrow-left  fa-2x" style="color:rgb(204, 0, 0)" aria-hidden="true"></i><Span  style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;">Back</span></button>
+              </form>
+          </div>
+          <div class="col-4 col-xxl-4 col-xl-4 col-lg-4 col-md-4 col-sm-4"></div>
+          <div class="col-4 col-xxl-4 col-xl-4 col-lg-4 col-md-4 col-sm-4 text-end">
+            <a href="{{url_for('home')}}"><i  class="fa fa-home  fa-2x" style="color:rgb(204, 0, 0)" aria-hidden="true"></i><Span style="color: rgb(204, 0, 0); font-weight: bold; font-size: 18px;"> Home</span></a>
+          </div>
+          </div>
+
+          <div class="row mt-4">
+            <div class="col-12">
+              <p class ="heading1"><b>Recommended Resolution for </b><span style="color:#b30000; font-weight: 300; ">{{ incident_number }}</span></p>
+              <p class ="heading1"><b>Similar Incident Number: <...#b30000; font-weight: 300; ">{{ incident['Number'] }}</span></p>
+              <p class="heading1"><b>Description: </b> <span...ck; font-weight: 300; ">{{ incident['Title'] }} </span></p>
+              <p class="heading1"><b>Cause Code: </b><span style="color:black; font-weight: 300; ">{{ incident['Cause code'] }} </span></p>
+
+              <p class="heading1"><b>Resolution:</b></p>
+              <!-- Raw resolution (kept hidden) + formatted container -->
+              <div id="resolutionFormatted" class="resolution-block"></div>
+              <p id="resolutionRaw" style="display:none;">{{ incident['Resolution'] }}</p>
+            </div>
+          </div>
+
+          <div class="row mt-5">
+            <div class="col-12">
+              <p class="text-muted mb-2">We love your feedback. Was this resolution helpful ?</p>
+
+              <!-- IMPORTANT: keep this as ONLY the boolean-like value so JS can read it -->
+              <p id="user_has_feedback" style="display:none;">{{ user_has_feedback }}</p>
+
+              <div class="row">
+                <div class="col-7 col-xxl-7 col-xl-7 col-lg-7 col-md-7 col-sm-7">
+                  <!--
+                    Feedback buttons / forms are in your original file below.
+                    (Keeping your original structure unchanged)
+                  -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+      </div>
+
+    <script src="{{ url_for('static',filename='node_modules2/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='node_modules2/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='node_modules2/datatables.net/js/dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='node_modules2/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+
+    <script>
+  // ---- Resolution formatting ----
+  function parseResolution(raw) {
+    if (!raw) return [];
+    const labels = [
+      "Root Cause Category",
+      "Root Cause-Sub Category",
+      "Root Cause Sub Category",
+      "Root Cause Analysis",
+      "Root Cause",
+      "Temporary Fix",
+      "Permanent Fix",
+      "Issue Description",
+      "Category",
+      "Sub_Category",
+      "RCA",
+      "Action Taken",
+      "Resolution Type"
+    ];
+
+    // Build one regex that finds each label followed by ":" or "-"
+    const labelRe = new RegExp(
+      "(" + labels.map(l => l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")\\s*[-:]\\s*",
+      "gi"
+    );
+
+    const matches = [];
+    let match;
+    while ((match = labelRe.exec(raw)) !== null) {
+      matches.push({ label: match[1], start: match.index, end: labelRe.lastIndex });
+    }
+    if (matches.length === 0) return [];
+
+    const parts = [];
+    for (let i = 0; i < matches.length; i++) {
+      const cur = matches[i];
+      const next = matches[i + 1];
+      const value = raw.slice(cur.end, next ? next.start : raw.length).trim();
+      if (value) parts.push({ label: cur.label, value });
+    }
+    return parts;
+  }
+
+  function renderResolution() {
+    const rawEl = document.getElementById("resolutionRaw");
+    const outEl = document.getElementById("resolutionFormatted");
+    if (!rawEl || !outEl) return;
+
+    const raw = (rawEl.textContent || "").trim();
+    const parts = parseResolution(raw);
+
+    // Always clear previous content
+    outEl.innerHTML = "";
+
+    if (!parts.length) {
+      // Fallback: show raw text, but readable
+      const pre = document.createElement("pre");
+      pre.className = "resolution-pre";
+      pre.textContent = raw || "No resolution text available.";
+      outEl.appendChild(pre);
+      return;
+    }
+
+    const dl = document.createElement("dl");
+    dl.className = "row mb-0";
+
+    parts.forEach(({ label, value }) => {
+      const dt = document.createElement("dt");
+      dt.className = "col-sm-3 text-secondary fw-semibold";
+      dt.textContent = label;
+
+      const dd = document.createElement("dd");
+      dd.className = "col-sm-9 resolution-value";
+      dd.textContent = value;
+
+      dl.appendChild(dt);
+      dl.appendChild(dd);
+    });
+
+    outEl.appendChild(dl);
+  }
+
+  // ---- Feedback button enable/disable ----
+  function disablebutton() { setFeedbackButtonsDisabled(true); }
+  function enablebutton() { setFeedbackButtonsDisabled(false); }
+
+  function setFeedbackButtonsDisabled(disabled) {
+    $("#feedback_like, #feedback_dislike").prop("disabled", disabled);
+    if (disabled) {
+      $("#feedback_like, #feedback_dislike").addClass("disabled");
+    } else {
+      $("#feedback_like, #feedback_dislike").removeClass("disabled");
+    }
+  }
+
+  $(document).ready(function () {
+    renderResolution();
+
+    const hasFeedbackText = (document.getElementById("user_has_feedback")?.textContent || "").trim().toLowerCase();
+    const hasFeedback = (hasFeedbackText === "true" || hasFeedbackText === "1" || hasFeedbackText === "yes");
+
+    setFeedbackButtonsDisabled(hasFeedback);
+  });
+</script>
+
+   <script>
+      $(document).ready(function() {
+          checkKeyword_AutoRestart();
+
+          checkKeyword_ForceComplete();
+          user_session();
+
+          const autorestart_emailsubject = $('#auto_restart_emailsubject').text().trim();
+          const autorestart_emailmessage = $('.auto_restart_emailmessage').text().trim();
+          const forcecomplete_emailsubject = $('#force_complete_emailsubject').text().trim();
+          const forcecomplete_emailmessage  = $('.force_complete_emailmessage').text().trim();
+
+          $("#sendEmailAutoRestartBtn").click(function() {
+              $.ajax({
+                  type: "POST",
+                  url: "/send_email",
+                  contentType: "application/json",
+                  data: JSON.stringify({
+                      subject: autorestart_emailsubject,
+                      message: autorestart_emailmessage
+                  }),
+                  success: function(response) {
+                      alert(response.message);
+                  },
+                  error: function(error) {
+                      alert("Error sending email: " + error.responseText);
+                  }
+              });
+          });
+
+          $("#sendEmailForceCompleteBtn").click(function() {
+              $.ajax({
+                  type: "POST",
+                  url: "/send_email",
+                  contentType: "application/json",
+                  data: JSON.stringify({
+                      subject: forcecomplete_emailsubject,
+                      message: forcecomplete_emailmessage
+                  }),
+                  success: function(response) {
+                      alert(response.message);
+                  },
+                  error: function(error) {
+                      alert("Error sending email: " + error.responseText);
+                  }
+              });
+          });
+      });
+
+      function checkKeyword_AutoRestart() {
+          const content = $("#incident_content").text();
+          if (content.toLowerCase().includes("autorestart")) {
+              $(".autorestart_email").show();
+          } else {
+              $(".autorestart_email").hide();
+          }
+      }
+
+      function checkKeyword_ForceComplete() {
+          const content = $("#incident_content").text();
+          if (content.toLowerCase().includes("forcecomplete")) {
+              $(".forcecomplete_email").show();
+          } else {
+              $(".forcecomplete_email").hide();
+          }
+      }
+
+      function user_session(){
+        const incident_number = $("#incident_number").text();
+        $.ajax({
+            type: "POST",
+            url: "/user_session",
+            contentType: "application/json",
+            data: JSON.stringify({ incident_number: incident_number }),
+            success: function(response) {
+                if (response.user_has_feedback === true) {
+                    disablebutton();
+                }
+            },
+            error: function(error) {
+                console.log("Error: " + error.responseText);
+            }
+        });
+      }
+   </script>
+{% endblock %}
+
