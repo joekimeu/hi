@@ -43,15 +43,18 @@
 
       <!-- State -->
       <label for="state"><b>State<span style="color:red">*</span></b></label>
-      <select id="state" class="form-control">
+      <select id="state" class="form-select">
         <option value="resolved">Resolved</option>
         <option value="pending">Pending</option>
+        <option value="new">New</option>
+        <option value="wip">Work in Progress</option>
+        <option value="assigned">Assigned</option>
       </select>
 
       <!-- Sub State -->
       <label for="sub_tate"><b>Sub State <span style="color:red">*</span></b></label>
       <!-- Keep id="sub_tate" because your backend payload expects sub_tate -->
-      <select id="sub_tate" class="form-control">
+      <select id="sub_tate" class="form-select">
         <option value="">---Select Sub State---</option>
       </select>
 
@@ -71,22 +74,14 @@
         <textarea id="duplicate" class="form-control" rows="1"></textarea>
       </div>
 
-      <!-- Resolved-only fields wrapper -->
-      <div id="resolvedFields">
-
-        <label for="cause_code">
-          <b>Cause Code <span style="color:red">*</span></b>
-          <span id="causecode_hint" style="display:none;"></span>
-        </label>
-        <select id="cause_code" class="form-control">
-          <option value="">---Select Cause Code---</option>
-        </select>
+      <!-- Shared fields for Resolved + New/WIP/Assigned -->
+      <div id="triageFields" style="display:none;">
 
         <label for="category">
           <b>Category <span style="color:red">*</span></b>
           <span id="category_hint" style="display:none;"></span>
         </label>
-        <select id="category" class="form-control">
+        <select id="category" class="form-select">
           <option value="">---Select Category---</option>
         </select>
 
@@ -94,8 +89,21 @@
           <b>Sub Category <span style="color:red">*</span></b>
           <span id="subcategory_hint" style="display:none;"></span>
         </label>
-        <select id="sub_category" class="form-control">
+        <select id="sub_category" class="form-select">
           <option value="">---Select Sub Category---</option>
+        </select>
+
+      </div>
+
+      <!-- Resolved-only fields wrapper -->
+      <div id="resolvedFields">
+
+        <label for="cause_code">
+          <b>Cause Code <span style="color:red">*</span></b>
+          <span id="causecode_hint" style="display:none;"></span>
+        </label>
+        <select id="cause_code" class="form-select">
+          <option value="">---Select Cause Code---</option>
         </select>
 
         <label for="details">
@@ -113,13 +121,13 @@
         <div id="actionFeedback" class="feedback"></div>
 
         <label for="resolution_type"><b>Resolution Type <span style="color:red">*</span></b></label>
-        <select id="resolution_type" class="form-control">
+        <select id="resolution_type" class="form-select">
           <option value="">---Select Resolution Type---</option>
         </select>
 
       </div>
 
-      <!-- Work Notes (available to BOTH states) -->
+      <!-- Work Notes (available to ALL states) -->
       <label for="work_notes"><b>Work Notes</b></label>
       <textarea id="work_notes" class="form-control" rows="3"></textarea>
 
@@ -251,28 +259,6 @@
   }
 
   // ----------------------------
-  // Visibility rules (matches screenshots)
-  // ----------------------------
-  function setStateUI(stateVal) {
-    const resolvedFields = document.getElementById("resolvedFields");
-    const resolvedModalFields = document.getElementById("resolvedModalFields");
-
-    if (stateVal === "pending") {
-      // Hide all "resolved-only" inputs for Pending view
-      resolvedFields.style.display = "none";
-      resolvedModalFields.style.display = "none";
-    } else {
-      resolvedFields.style.display = "block";
-      resolvedModalFields.style.display = "block";
-    }
-
-    // Resolution type dropdown should only be meaningful for resolved state,
-    // but we still update it to keep code consistent.
-    const options = DROPDOWN_OPTIONS.resolutionTypes[stateVal] || [];
-    fillSelect("resolution_type", "---Select Resolution Type---", options);
-  }
-
-  // ----------------------------
   // Conditional substate blocks
   // ----------------------------
   function updateConditionalBlocks() {
@@ -280,6 +266,46 @@
     $("#Pending_Problem").toggle(sub === "Pending_Problem");
     $("#Pending_Change").toggle(sub === "Pending_Change");
     $("#Duplicate").toggle(sub === "Duplicate");
+  }
+
+  // ----------------------------
+  // Visibility rules + section toggles
+  // ----------------------------
+  function setStateUI(stateVal) {
+    const resolvedFields = document.getElementById("resolvedFields");
+    const resolvedModalFields = document.getElementById("resolvedModalFields");
+    const triageFields = document.getElementById("triageFields");
+
+    // Hide everything first
+    resolvedFields.style.display = "none";
+    resolvedModalFields.style.display = "none";
+    triageFields.style.display = "none";
+
+    if (stateVal === "pending") {
+      // Pending: only Sub State + Work Notes + conditional blocks
+    } else if (stateVal === "resolved") {
+      // Resolved: show resolved-only + triage (category/subcategory)
+      resolvedFields.style.display = "block";
+      resolvedModalFields.style.display = "block";
+      triageFields.style.display = "block";
+    } else if (stateVal === "new" || stateVal === "wip" || stateVal === "assigned") {
+      // New/WIP/Assigned: show triage (category/subcategory)
+      triageFields.style.display = "block";
+
+      // Ensure category dropdown gets populated (cause_code is hidden in these states)
+      const cc = $("#cause_code").val() || selectedCause || $("#cause_code option:eq(1)").val();
+      if (cc) {
+        $("#cause_code").val(cc);
+        populateCategory(cc);
+
+        const cat = $("#category").val();
+        if (cat) populateSubCategory(cc, cat);
+      }
+    }
+
+    // Resolution type only matters for resolved; it will be hidden otherwise anyway
+    const options = DROPDOWN_OPTIONS.resolutionTypes[stateVal] || [];
+    fillSelect("resolution_type", "---Select Resolution Type---", options);
   }
 
   // ----------------------------
@@ -441,17 +467,22 @@
     const subStateVal = $("#sub_tate").val();
 
     try {
-      if (stateVal === "pending") {
-        // Your original /update1 payload style
+      // Anything not resolved uses /update1
+      if (stateVal !== "resolved") {
+        const triageNote =
+          (stateVal === "new" || stateVal === "wip" || stateVal === "assigned")
+            ? `Category : ${$("#category").val()}\nSub_Category : ${$("#sub_category").val()}`
+            : "";
+
         const data1 = {
           modalState1: subStateVal,
           original_inc: document.getElementById('original_inc').value,
           modalWork: $("#work_notes").val(),
-          modalText1: "", // pending flow didn’t use closure note in your screenshot
+          modalText1: triageNote,
           Pending_problem1: $("#PendingProblem").val(),
           Pending_Change1: $("#PendingChange").val(),
           Duplicate1: $("#duplicate").val(),
-          cause_code1: "" // pending screen does not show cause code
+          cause_code1: ""
         };
 
         const response = await fetch('/update1', {
@@ -513,7 +544,7 @@
     const subState = $("#sub_tate").val();
 
     let isvalid = true;
-    $(".form-control").removeClass("is-invalid");
+    $(".form-control, .form-select").removeClass("is-invalid");
     $("#errorMsg").hide().text("");
 
     if(!stateVal) { $("#state").addClass("is-invalid"); isvalid = false; }
@@ -526,6 +557,14 @@
     if(subState === "Pending_Problem" && !PendingProblem) { $("#PendingProblem").addClass("is-invalid"); isvalid = false; }
     if(subState === "Pending_Change" && !PendingChange) { $("#PendingChange").addClass("is-invalid"); isvalid = false; }
     if(subState === "Duplicate" && !Duplicate) { $("#duplicate").addClass("is-invalid"); isvalid = false; }
+
+    // New/WIP/Assigned require category + subcategory
+    if (stateVal === "new" || stateVal === "wip" || stateVal === "assigned") {
+      const category = $("#category").val();
+      const sub_category = $("#sub_category").val();
+      if(!category) { $("#category").addClass("is-invalid"); isvalid = false; }
+      if(!sub_category) { $("#sub_category").addClass("is-invalid"); isvalid = false; }
+    }
 
     if (stateVal === "resolved") {
       const cause_code = $("#cause_code").val();
@@ -573,6 +612,10 @@
         `Resolution Type : ${$("#resolution_type").val()}`;
 
       $("#modalText").val(closureNote);
+    } else if (stateVal === "new" || stateVal === "wip" || stateVal === "assigned") {
+      $("#resolvedModalFields").hide();
+      $("#modalCause").val("");
+      $("#modalText").val(`Category : ${$("#category").val()}\nSub_Category : ${$("#sub_category").val()}`);
     } else {
       $("#resolvedModalFields").hide();
       $("#modalCause").val("");
@@ -609,7 +652,7 @@
     $("#resolution_type").val("");
     $("#work_notes").val("");
 
-    $(".form-control").removeClass("is-invalid");
+    $(".form-control, .form-select").removeClass("is-invalid");
     $("#errorMsg").hide().text("");
     updateConditionalBlocks();
   });
@@ -617,7 +660,6 @@
   // ----------------------------
   // Init
   // ----------------------------
-  // Populate substates once
   fillSelect("sub_tate", "---Select Sub State---", DROPDOWN_OPTIONS.subStates);
 
   // Default state UI
@@ -635,12 +677,15 @@
     updateConditionalBlocks();
   });
 
-  // Load JSON (used for resolved only, but harmless to load once)
+  // Load JSON (used for category/subcategory + resolved cause code)
   $.getJSON("/static/data.json", function(data) {
     jsonData = data;
     populateCauseCode();
     resolution_split();
     autoSelectValues();
+
+    // After auto-select, ensure UI population for current state (important for New/WIP/Assigned)
+    setStateUI($("#state").val());
 
     // calculate initial scores if those fields exist
     const d = document.getElementById("details");
