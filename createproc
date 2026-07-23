@@ -1,0 +1,11 @@
+USE [RFD_RetailFunding];
+GO
+
+CREATE PROCEDURE dbo.spCMSPurgeData
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 'Procedure created successfully' AS Message;
+END;
+GO
