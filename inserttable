@@ -1,0 +1,22 @@
+INSERT INTO dbo.PurgeTableList
+(
+    TargetSchemaName,
+    TargetTableName,
+    CriteriaColumn,
+    RetentionYears,
+    IsActive,
+    ExecutionOrder
+)
+VALUES
+    ('dbo', 'AuditColumn', 'AuditDate', 10, 1, 1),
+    ('dbo', 'Audit', 'auditDate', 10, 1, 2),
+    ('dbo', 'AuditUser', 'auditDate', 10, 1, 3),
+    ('dbo', 'AMR171', 'auditDate', 10, 1, 4),
+    ('dbo', 'Acct_Detail', 'eff_date', 10, 1, 5),
+    ('dbo', 'AutoAccts', 'dteFundingDate', 10, 1, 6),
+    ('dbo', 'AutoAcctsCompleteArchive', 'dteFundingDate', 10, 1, 7),
+    ('dbo', 'AutoAdvance', 'dteFundingDate', 10, 1, 8),
+    ('dbo', 'AutoALSPay', 'dtePayoffDate', 10, 1, 9),
+    ('dbo', 'AutoALSPayCompleteArchive', 'dtePayoffDate', 10, 1, 10),
+    ('dbo', 'AutoBillTrack', 'dteFundingDate', 10, 1, 11),
+    ('dbo', 'CIFTrack', 'dteFundingDate', 10, 1, 12);
