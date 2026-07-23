@@ -1,0 +1,45 @@
+USE [RFD_RetailFunding];
+GO
+
+CREATE TABLE dbo.PurgeTableList
+(
+    PurgeTableListId INT IDENTITY(1,1) NOT NULL
+        CONSTRAINT PK_PurgeTableList PRIMARY KEY,
+
+    TargetSchemaName SYSNAME NOT NULL
+        CONSTRAINT DF_PurgeTableList_TargetSchemaName
+        DEFAULT ('dbo'),
+
+    TargetTableName SYSNAME NOT NULL,
+
+    CriteriaColumn SYSNAME NOT NULL,
+
+    RetentionYears INT NOT NULL,
+
+    IsActive BIT NOT NULL
+        CONSTRAINT DF_PurgeTableList_IsActive
+        DEFAULT (1),
+
+    ExecutionOrder INT NOT NULL,
+
+    CreatedDate DATETIME2(0) NOT NULL
+        CONSTRAINT DF_PurgeTableList_CreatedDate
+        DEFAULT (SYSDATETIME()),
+
+    ModifiedDate DATETIME2(0) NULL,
+
+    CONSTRAINT CK_PurgeTableList_RetentionYears
+        CHECK (RetentionYears > 0),
+
+    CONSTRAINT CK_PurgeTableList_ExecutionOrder
+        CHECK (ExecutionOrder > 0),
+
+    CONSTRAINT UQ_PurgeTableList_Target
+        UNIQUE
+        (
+            TargetSchemaName,
+            TargetTableName,
+            CriteriaColumn
+        )
+);
+GO
